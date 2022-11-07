@@ -1,7 +1,9 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-module Main where
+{-# LANGUAGE OverloadedStrings #-}
+
+module Main (main) where
 -- Passer avec Noeud + Branches et remplacer le booléen du Noeud
--- par un Maybe int : la proba du mot pour la prendre légèrement en compte
+-- par un int : la proba du mot pour la prendre légèrement en compte
 -- dans le calcul de distance
 -- Ajouter prédiction du prochain mot
 import System.IO
@@ -10,13 +12,36 @@ import Data.List ( nub, intersperse )
 import Data.Vector ( Vector, fromList, toList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
 import Data.Bifunctor ( second )
+import Data.Aeson
+--import Data.Text ( Text )
+--import qualified Data.ByteString as B
+import Data.ByteString.Char8 ( pack )
 import WordsTrees
 --import Control.Parallel ( par, pseq )
 
 type Keyboard = Vector Char
 
+data CountedWords = CountedWords {
+      word :: String
+    , freq :: Int
+    } deriving Show
+
+instance FromJSON CountedWords where
+    parseJSON = withObject "CountedWords" $ \v -> CountedWords
+        <$> v .: "word"
+        <*> v .: "freq"
+
 main :: IO ()
 main = do
+    --print (map decode $ parseInput "{\"word\":\"test\",\"freq\":12} {\"word\":\"test2\",\"freq\":13}" :: [Maybe CountedWords] )
+    --let inputFreq = parseInput "{\"word\":\"test\",\"freq\":12} {\"word\":\"test2\",\"freq\":13}"
+    file <- openFile "freq2.txt" ReadMode
+    contents <- hGetContents file
+    let inputFreq = parseInput contents
+    --prettyPrint $ take 10 inputFreq
+    --print $ head inputFreq
+    --print ((decodeStrict.pack) (head inputFreq) :: Maybe CountedWords)
+    print $ take 10 (map (decodeStrict.pack) inputFreq :: [Maybe CountedWords])
     file <- openFile "en_GB.dic" ReadMode
     contents <- hGetContents file
     let dictionaryTree = listToTree (Node 0 []) $ words contents
@@ -39,7 +64,7 @@ correctWord tree word = take 10 . map fst . quickSort.map (\x -> (x, strDiff wor
 
 correctLine :: Tree Char -> String -> String
 correctLine tree line = assemble correctWords
-    where correctWords = map (head . correctWord tree) $ parseInput line
+    where correctWords = map (head . correctWord tree) $ words line --parseInput line
           assemble = tail . foldl (\w1 w2 -> w1 ++ " " ++ w2 ) ""
 
 parseInput :: String -> [String]
