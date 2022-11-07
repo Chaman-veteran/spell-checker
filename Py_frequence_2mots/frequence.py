@@ -34,7 +34,19 @@ for ind in range(len(data)-1):
 
 for word in dico:
     dico[word] = dict(sorted(dico[word].items(), key=lambda y: y[1], reverse=True)[:7])
+freq = dict(sorted(freq.items(), key=lambda y: y[1], reverse=True))
+freq2 = {}
+# freq2 :: {{String : String, String : int}}
+for word in freq:
+    freq2['} "{"word":"'+word] = {"freq":freq[word]}
 
-f = open(files+"assoc.txt",'w')
+f = open(files+"assoc.txt", 'w')
 f.write(json.dumps(dico, indent=4))
 f.close()
+f = open(files+"freq.txt", 'w')
+f.write(json.dumps(freq, indent=0, separators=(',',':')))
+f.close()
+f = open(files+"freq2.txt", 'w')
+f.write(json.dumps(freq2, indent=0, separators=(':',':')))
+f.close()
+# Rq : freq2.txt demande du traitement, TODO : json + propre ou traitement regex python
