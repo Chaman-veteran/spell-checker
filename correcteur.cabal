@@ -29,16 +29,16 @@ executable correcteur
     main-is:    Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
-    other-modules:  WordsTrees
+    other-modules: WordsTrees
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:
-        base       ^>= 4.16.3.0,
-        parallel   ^>= 1.0.0.0,
-        vector     ^>= 0.12.0.0,
-        bytestring ^>= 0.11.4.0,
-        aeson      ^>= 2.1.2.0
+        base ^>=4.16.3.0,
+        parallel ^>=1.0.0.0,
+        vector ^>=0.12.0.0,
+        aeson ^>=2.1.0.0,
+        bytestring ^>=0.11.3.1
+        --text ^>=1.2.4.1
     hs-source-dirs:   app
     default-language: Haskell2010

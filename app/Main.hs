@@ -8,7 +8,7 @@ import System.IO
 import Data.List ( nub, intersperse )
 import Data.Vector ( Vector, fromList, toList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
-import Data.Bifunctor ( second )
+--import Data.Bifunctor ( second )
 import Data.Aeson ( FromJSON, parseJSON, withObject, (.:), decodeStrict )
 --import Data.Text ( Text )
 --import qualified Data.ByteString as B
@@ -81,6 +81,7 @@ keyboardEn = fromList
         , 'z', 'x', 'c', 'v', 'b', 'n', 'm']
 
 -- Défini la zone de proximité, pb : ind-1 pour a met p
+nearIndices :: Integral a => a -> [a]
 nearIndices ind = case  ind `mod` 10 of
     0 -> [ind+1, ind+10, ind-10, ind-9, ind+11]
     9 -> [ind-1, ind+10, ind-10, ind+9, ind-11]
@@ -124,7 +125,7 @@ strDiff (x:xs) (y:ys) =
                         - if elem x $ nearChar y then 1
                           else 0
                 nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
- 
+
 quickSort :: Ord a2 => [(a1, a2)] -> [(a1, a2)]
 quickSort [] = []
 quickSort (x:xs) = quickSort [w | w <- xs, snd w < snd x]
