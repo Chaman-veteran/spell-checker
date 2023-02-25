@@ -2,26 +2,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
--- Ajouter prédiction du prochain mot
+-- TODO : Ajouter poids (fréquences) dans l'arbre
 import System.IO
      ( hClose, hGetContents, openFile, IOMode(ReadMode) )
 import Data.List ( nub, intersperse )
 import Data.Vector ( Vector, fromList, toList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
---import Data.Bifunctor ( second )
 import Data.Aeson ( FromJSON, parseJSON, withObject, (.:), decodeStrict )
---import Data.Text ( Text )
---import qualified Data.ByteString as B
 import Data.ByteString.Char8 ( pack )
 import WordsTrees
 --import Control.Parallel ( par, pseq )
 
 type Keyboard = Vector Char
-
-data CountedWords = CountedWords {
-      word :: String
-    , freq :: Int
-    } deriving Show
 
 instance FromJSON CountedWords where
     parseJSON = withObject "CountedWords" $ \v -> CountedWords
@@ -30,18 +22,13 @@ instance FromJSON CountedWords where
 
 main :: IO ()
 main = do
-    --print (map decode $ parseInput "{\"word\":\"test\",\"freq\":12} {\"word\":\"test2\",\"freq\":13}" :: [Maybe CountedWords] )
-    --let inputFreq = parseInput "{\"word\":\"test\",\"freq\":12} {\"word\":\"test2\",\"freq\":13}"
-    file <- openFile "freq2.txt" ReadMode
+    file <- openFile "Py_frequence_2mots//freq2.txt" ReadMode
     contents <- hGetContents file
     let inputFreq = parseInput contents
-    --prettyPrint $ take 10 inputFreq
-    --print $ head inputFreq
-    --print ((decodeStrict.pack) (head inputFreq) :: Maybe CountedWords)
-    print $ take 10 (map (decodeStrict.pack) inputFreq :: [Maybe CountedWords])
-    file <- openFile "en_GB.dic" ReadMode
-    contents <- hGetContents file
-    let dictionaryTree = listToTree (Node 0 []) $ words contents
+    print $ take 10 (map ((\(Just x) -> x).decodeStrict.pack) inputFreq :: [CountedWords])
+    -- file <- openFile "en_GB.dic" ReadMode
+    -- contents <- hGetContents file
+    let dictionaryTree = listToTree (Node 0 []) $ take 10 $ map ((\(Just x) -> x).decodeStrict.pack) inputFreq
     --print $ V.find (\z -> 'a' == fst z) actualKeyboard
     putStrLn "Entrez un mot:"
     prompt dictionaryTree
@@ -51,7 +38,7 @@ main = do
                  line <- getLine
                  if null line
                    then return ()
-                   else do print $ correctLine tree line
+                   else do print $ correctWord tree line
                            prompt tree
                            --print $ isReal t line
 
@@ -77,8 +64,8 @@ prettyPrint l = mapM_ putStr $ ["["] ++ intersperse ", " l ++ ["]\n"]
 keyboardEn :: Keyboard
 keyboardEn = fromList 
         [ 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'
-        , 'a', 's', 'd', 'f', 'g', 'h', 'i', 'j', 'k', 'l'
-        , 'z', 'x', 'c', 'v', 'b', 'n', 'm']
+        , 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';'
+        , 'z', 'x', 'c', 'v', 'b', 'n', 'm',',','.']
 
 -- Défini la zone de proximité, pb : ind-1 pour a met p
 nearIndices :: Integral a => a -> [a]
@@ -95,16 +82,19 @@ charsPerimeter keyboard = imap (\ind _ -> map (keyboard!?) $ nearIndices ind) ke
 clearNearChars :: Vector [Maybe Char] -> Vector [Maybe Char]
 clearNearChars = V.map $ filter (/= Nothing)
 
--- Composition pour rendre nearChars plus agréable
+-- Composition pour rendre nearChars plus agréable : création des voisins
 nearChars' :: Keyboard -> Vector [Char]
 nearChars' = V.map (map (\(Just x) -> x)) . clearNearChars . charsPerimeter
 
+-- Association entre caractère et ses voisins
 associateNearChars :: Keyboard -> Vector [Char] -> Vector (Char, [Char])
 associateNearChars keyboard perimeter = imap (\ind char -> (char, perimeter!ind)) keyboard 
 
+-- Donne les voisins de chaque caractère
 nearChars :: Keyboard -> Vector (Char, [Char])
 nearChars keyboard = associateNearChars keyboard $ nearChars' keyboard
 
+-- Clavier utilisé
 actualKeyboard :: Vector (Char, [Char])
 actualKeyboard = nearChars keyboardEn
 
@@ -116,15 +106,15 @@ outMaybeAssocList (Just(_,l)) = l
 strDiff :: [Char] -> [Char] -> Int
 strDiff x "" = length x
 strDiff "" y = length y
-strDiff (x:xs) (y:ys) = 
+strDiff (x:xs) (y:ys) =
     if x==y then strDiff xs ys
-    else  2 + diffMin
-        where   diffMin = min diffMinq $ min (strDiff xs (y:ys)) (strDiff (x:xs) ys)
-                -- traiter le cas où ils sont "proches" :
-                diffMinq = strDiff xs ys
-                        - if elem x $ nearChar y then 1
-                          else 0
-                nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
+    else 2 + diffMin
+        where diffMin = min diffMinq $ min (strDiff xs (y:ys)) (strDiff (x:xs) ys)
+              -- traiter le cas où ils sont "proches" :
+              diffMinq = strDiff xs ys
+                      - if elem x $ nearChar y then 1
+                        else 0
+              nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
 
 quickSort :: Ord a2 => [(a1, a2)] -> [(a1, a2)]
 quickSort [] = []

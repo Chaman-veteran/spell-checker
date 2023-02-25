@@ -1,14 +1,14 @@
 module WordsTrees where
--- Ajouter prédiction du prochain mot
-import System.IO
-     ( hClose, hGetContents, openFile, IOMode(ReadMode) )
-import Data.List ( nub, intersperse )
+-- TODO : Ajouter poids (fréquences) dans l'arbre
 import Data.Bifunctor ( second )
---import Control.Parallel ( par, pseq )
 
 data Tree a = Node Int [Branch a] 
 data Branch a = B a (Tree a)
 
+data CountedWords = CountedWords {
+      word :: String
+    , freq :: Int
+    } deriving Show
 
 branchFst :: Branch a -> a
 branchFst (B c _) = c
@@ -36,17 +36,18 @@ separate ((B c tree):tbranch) letter =
     if c==letter then ([B c tree], tbranch)
     else second (B c tree :) $ separate tbranch letter
 
--- Insert dans un arbre un mot
-inser :: Eq a => Tree a -> [a] -> Tree a
-inser (Node freq branches) [] = Node 1 branches
-inser (Node freq branches) (w:ws) =
-        Node freq $ if null next then B w (inser (Node 0 []) ws) : branches
-                    else B w (inser (branchSnd $ head next) ws) : follow
+-- Insert un mot dans un arbre
+inser :: Tree Char -> CountedWords -> Tree Char
+inser (Node _ branches) (CountedWords [] freq) = Node freq branches
+inser (Node freq branches) (CountedWords (w:ws) f) =
+        Node freq $ if null next then B w (inser (Node 0 []) toInsert) : branches
+                    else B w (inser (branchSnd $ head next) toInsert) : follow
         where
             (next, follow) = separate branches w
+            toInsert = CountedWords ws f
 
 -- Insert une liste de mots dans un arbre
-listToTree :: Eq a => Tree a -> [[a]] -> Tree a
+listToTree :: Tree Char -> [CountedWords] -> Tree Char
 listToTree = foldl inser
 
 -- Donne la liste des lettres possibles pour continuer dans l'arbre
