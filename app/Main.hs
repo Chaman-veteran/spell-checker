@@ -25,9 +25,10 @@ main = do
     file <- openFile "Py_frequence_2mots//freq2.txt" ReadMode
     contents <- hGetContents file
     let inputFreq = parseInput contents
-    print $ take 10 (map ((\(Just x) -> x).decodeStrict.pack) inputFreq :: [CountedWords])
+    --print $ take 10 (map ((\(Just x) -> x).decodeStrict.pack) inputFreq :: [CountedWords])
     let dictionaryTree = listToTree (Node 0 []) $ map (fromMaybe.decodeStrict.pack) inputFreq
     --print $ V.find (\z -> 'a' == fst z) actualKeyboard
+    putStrLn "Appuyez sur retour chariot pour corriger un mot ou sur tab + retour chariot pour compléter le mot en cours."
     putStrLn "Entrez un mot:"
     prompt dictionaryTree
     hClose file
@@ -36,13 +37,17 @@ main = do
                  line <- getLine
                  if null line
                    then return ()
-                   else do print $ correctWord tree line
+                   else do print $ if last line == '\t' then completeWord tree $ init line
+                                   else correctWord tree line
                            prompt tree
                            --print $ isReal t line
 
 fromMaybe :: Maybe CountedWords -> CountedWords
 fromMaybe Nothing = CountedWords "" 0
 fromMaybe (Just s) = s
+
+completeWord :: Tree Char -> String -> [String]
+completeWord tree prefixe = take 10 . map (\(CountedWords s _) -> s) $ sortCountedWords $ giveSuffixe tree prefixe 
 
 correctWord :: Tree Char -> String -> [String]
 correctWord tree word = take 10 . map (\(CountedWords s _,_) -> s) . sortFreq .
@@ -135,3 +140,9 @@ sortFreq (x@(CountedWords s fs, nearest):xs) =
     ++ [x]
     ++ [w | w <- xs, snd w == nearest && fs >= freqFromCountedWords (fst w)]
     ++ sortFreq [w | w <- xs, snd w /= nearest]
+
+sortCountedWords :: [CountedWords] -> [CountedWords]
+sortCountedWords [] = []
+sortCountedWords (cw:cws) = sortCountedWords [w | w <- cws, freqFromCountedWords cw < freqFromCountedWords w]
+                        ++ [cw]
+                        ++ sortCountedWords [w | w <- cws, freqFromCountedWords cw >= freqFromCountedWords w]

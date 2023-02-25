@@ -76,3 +76,21 @@ similarWord actualNode@(Node freq branches) n prefixe word@(w:ws) =
 
 similarWords :: Tree Char -> Int -> String -> [CountedWords]
 similarWords tree distance = similarWord tree distance []
+
+-- Donne l'abre associé à un préfix (l'arbre des possibles suffixes donc)
+possibleSuffixes :: Tree Char -> String -> Tree Char
+possibleSuffixes tree [] = tree 
+possibleSuffixes actualNode (w:ws) = 
+    if not (null next) then possibleSuffixes hnext ws else Node 0 []
+    where
+        next = searchLetter actualNode w
+        hnext = head next
+
+
+nextPossibilities :: Tree Char -> String -> [CountedWords]
+nextPossibilities (Node freq []) prefixe = [CountedWords prefixe freq]
+nextPossibilities (Node freq (b:bs)) prefixe = nextPossibilities (Node freq bs) prefixe
+                                            ++ nextPossibilities (branchSnd b) (prefixe++[branchFst b])
+
+giveSuffixe :: Tree Char -> String -> [CountedWords]
+giveSuffixe tree suffixe = nextPossibilities (possibleSuffixes tree suffixe) suffixe
