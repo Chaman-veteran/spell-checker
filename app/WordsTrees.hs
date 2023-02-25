@@ -1,7 +1,4 @@
 module WordsTrees where
--- Passer avec Noeud + Branches et remplacer le booléen du Noeud
--- par un Maybe int : la proba du mot pour la prendre légèrement en compte
--- dans le calcul de distance
 -- Ajouter prédiction du prochain mot
 import System.IO
      ( hClose, hGetContents, openFile, IOMode(ReadMode) )

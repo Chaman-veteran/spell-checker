@@ -2,9 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
--- Passer avec Noeud + Branches et remplacer le booléen du Noeud
--- par un int : la proba du mot pour la prendre légèrement en compte
--- dans le calcul de distance
 -- Ajouter prédiction du prochain mot
 import System.IO
      ( hClose, hGetContents, openFile, IOMode(ReadMode) )
@@ -12,7 +9,7 @@ import Data.List ( nub, intersperse )
 import Data.Vector ( Vector, fromList, toList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
 import Data.Bifunctor ( second )
-import Data.Aeson
+import Data.Aeson ( FromJSON, parseJSON, withObject, (.:), decodeStrict )
 --import Data.Text ( Text )
 --import qualified Data.ByteString as B
 import Data.ByteString.Char8 ( pack )
