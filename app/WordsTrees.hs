@@ -8,7 +8,7 @@ data Branch a = B a (Tree a)
 data CountedWords = CountedWords {
       word :: String
     , freq :: Int
-    } deriving Show
+    } deriving (Show, Eq)
 
 branchFst :: Branch a -> a
 branchFst (B c _) = c
@@ -25,6 +25,14 @@ searchLetter (Node _ branches) letter = take 1 $ map branchSnd
 isReal :: Eq a => Tree a -> [a] -> Bool
 isReal (Node freq _) [] = freq /= 0
 isReal actualNode (w:ws) = not (null next) && isReal hnext ws
+    where
+        next = searchLetter actualNode w
+        hnext = head next
+
+-- Dit si le mot existe dans l'arbre
+freqOf :: Eq a => Tree a -> [a] -> Int
+freqOf (Node freq _) [] = freq
+freqOf actualNode (w:ws) = if not (null next) then freqOf hnext ws else 0
     where
         next = searchLetter actualNode w
         hnext = head next
@@ -55,15 +63,16 @@ fromNodesToLetters :: Foldable t => t (Branch a) -> [a]
 fromNodesToLetters = foldr (\(B char _) -> (:) char) []
 
 -- Donne les mots similaires à un mot donné (distance fixée par le 2è paramètre)
-similarWord :: (Eq p, Num p, Eq a) => Tree a -> p -> [a] -> [a] -> [[a]]
+similarWord :: Tree Char -> Int -> String -> String -> [CountedWords]
 -- similarWord :: Arbre dico -> profondeur -> préfixe actuel -> mot tapé -> [mots proches]
-similarWord (Node freq _) _ prefixe [] = [prefixe | freq /= 0]
-similarWord actualNode 0 prefixe word = [if isReal actualNode word then prefixe++word else prefixe]
+similarWord (Node freq _) _ prefixe [] = [CountedWords prefixe freq | freq /= 0]
+similarWord actualNode 0 prefixe word = [CountedWords (prefixe++word) freqWord | freqWord /= 0]
+    where freqWord = freqOf actualNode word
 similarWord actualNode@(Node freq branches) n prefixe word@(w:ws) =
     let searchWords nextBranch@(B l nextTree) =
                         if l/=w then similarWord actualNode (n-1) prefixe (l:ws)
                         else similarWord nextTree n (prefixe++[w]) ws in
     concatMap searchWords branches
 
-similarWords :: (Eq p, Num p, Eq a) => Tree a -> p -> [a] -> [[a]]
+similarWords :: Tree Char -> Int -> String -> [CountedWords]
 similarWords tree distance = similarWord tree distance []

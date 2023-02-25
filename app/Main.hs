@@ -45,7 +45,8 @@ fromMaybe Nothing = CountedWords "" 0
 fromMaybe (Just s) = s
 
 correctWord :: Tree Char -> String -> [String]
-correctWord tree word = take 10 . map fst . quickSort.map (\x -> (x, strDiff word x)) $
+correctWord tree word = take 10 . map (\(CountedWords s _,_) -> s) . sortFreq .
+                        quickSort . map (\x -> (x, strDiff (CountedWords word 0) x)) $
                         nub $ similarWords tree 2 word
 
 correctLine :: Tree Char -> String -> String
@@ -105,21 +106,32 @@ outMaybeAssocList Nothing = []
 outMaybeAssocList (Just(_,l)) = l
 
 -- Calcul la distance de deux mots (dist de Hamming modifiée)
-strDiff :: [Char] -> [Char] -> Int
-strDiff x "" = length x
-strDiff "" y = length y
-strDiff (x:xs) (y:ys) =
-    if x==y then strDiff xs ys
+strDiff :: CountedWords -> CountedWords -> Int
+strDiff (CountedWords x _) (CountedWords [] _) = length x
+strDiff (CountedWords [] _) (CountedWords y _) = length y
+strDiff wx@(CountedWords (x:xs) freqx) wy@(CountedWords (y:ys) freqy) =
+    if x==y then strDiff (CountedWords xs freqx) (CountedWords ys freqy)
     else 2 + diffMin
-        where diffMin = min diffMinq $ min (strDiff xs (y:ys)) (strDiff (x:xs) ys)
+        where diffMin = min diffMinq $ min (strDiff (CountedWords xs freqx) wy) (strDiff wx (CountedWords ys freqy))
               -- traiter le cas où ils sont "proches" :
-              diffMinq = strDiff xs ys
+              diffMinq = strDiff (CountedWords xs freqx) (CountedWords ys freqy)
                       - if elem x $ nearChar y then 1
                         else 0
               nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
 
-quickSort :: Ord a2 => [(a1, a2)] -> [(a1, a2)]
+quickSort :: [(CountedWords, Int)] -> [(CountedWords, Int)]
 quickSort [] = []
 quickSort (x:xs) = quickSort [w | w <- xs, snd w < snd x]
                 ++ [x]
                 ++ quickSort [w | w <- xs, snd w >= snd x]
+
+freqFromCountedWords :: CountedWords -> Int
+freqFromCountedWords (CountedWords _ f) = f
+
+sortFreq :: [(CountedWords, Int)] -> [(CountedWords,Int)]
+sortFreq [] = []
+sortFreq (x@(CountedWords s fs, nearest):xs) =
+       [w | w <- xs, snd w == nearest && fs < freqFromCountedWords (fst w)]
+    ++ [x]
+    ++ [w | w <- xs, snd w == nearest && fs >= freqFromCountedWords (fst w)]
+    ++ sortFreq [w | w <- xs, snd w /= nearest]
