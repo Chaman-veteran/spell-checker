@@ -8,7 +8,7 @@ get_fd = lambda s:open(files+s, 'r')
 
 files_descriptors = list(map(get_fd, \
                              ["Harry_Potter_1.txt","Harry_Potter_2.txt",\
-                              "Harry_Potter_3.txt","Harry_Potter_4.txt"]))
+                              "Harry_Potter_3.txt","Harry_Potter_4.txt", "en_GB.dic"]))
 
 fold_concat = lambda fn,l: [] if l == [] else fn(l[0]) if len(l) == 1 else fn(l[0])+fold_concat(fn,l[1:])
 
@@ -22,15 +22,13 @@ for ind in range(len(data)-1):
     nextWord = data[ind+1]
     currentWord = data[ind]
     if currentWord in dico:
+        freq[currentWord] += 1
         if nextWord in dico[currentWord]:
             dico[currentWord][nextWord] += 1
         else:
             dico[currentWord][nextWord] = 1
     else:
         dico[currentWord] = {nextWord : 1}
-    if currentWord in freq:
-        freq[currentWord] += 1
-    else:
         freq[currentWord] = 1
 
 for word in dico:

@@ -26,9 +26,7 @@ main = do
     contents <- hGetContents file
     let inputFreq = parseInput contents
     print $ take 10 (map ((\(Just x) -> x).decodeStrict.pack) inputFreq :: [CountedWords])
-    -- file <- openFile "en_GB.dic" ReadMode
-    -- contents <- hGetContents file
-    let dictionaryTree = listToTree (Node 0 []) $ take 10 $ map ((\(Just x) -> x).decodeStrict.pack) inputFreq
+    let dictionaryTree = listToTree (Node 0 []) $ map (fromMaybe.decodeStrict.pack) inputFreq
     --print $ V.find (\z -> 'a' == fst z) actualKeyboard
     putStrLn "Entrez un mot:"
     prompt dictionaryTree
@@ -41,6 +39,10 @@ main = do
                    else do print $ correctWord tree line
                            prompt tree
                            --print $ isReal t line
+
+fromMaybe :: Maybe CountedWords -> CountedWords
+fromMaybe Nothing = CountedWords "" 0
+fromMaybe (Just s) = s
 
 correctWord :: Tree Char -> String -> [String]
 correctWord tree word = take 10 . map fst . quickSort.map (\x -> (x, strDiff word x)) $
