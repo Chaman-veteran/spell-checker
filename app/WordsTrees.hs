@@ -1,6 +1,6 @@
 module WordsTrees where
--- TODO : Ajouter poids (fréquences) dans l'arbre
 import Data.Bifunctor ( second )
+import Data.List ( nub )
 
 data Tree a = Node Int [Branch a] 
 data Branch a = B a (Tree a)
@@ -16,12 +16,12 @@ branchFst (B c _) = c
 branchSnd :: Branch a -> Tree a
 branchSnd (B _ t) = t
 
--- Arbre (noeud) -> lettre -> noeud associé à la lettre
+-- Tree (node) -> letter -> node associed to the letter
 searchLetter :: Eq a => Tree a -> a -> [Tree a]
 searchLetter (Node _ branches) letter = take 1 $ map branchSnd
                                         $ filter ((==) letter . branchFst) branches 
 
--- Dit si le mot existe dans l'arbre
+-- Predicate to know if the word exists in the tree
 isReal :: Eq a => Tree a -> [a] -> Bool
 isReal (Node freq _) [] = freq /= 0
 isReal actualNode (w:ws) = not (null next) && isReal hnext ws
@@ -29,7 +29,7 @@ isReal actualNode (w:ws) = not (null next) && isReal hnext ws
         next = searchLetter actualNode w
         hnext = head next
 
--- Dit si le mot existe dans l'arbre
+-- Return the frequence of the word if he exists, 0 else
 freqOf :: Eq a => Tree a -> [a] -> Int
 freqOf (Node freq _) [] = freq
 freqOf actualNode (w:ws) = if not (null next) then freqOf hnext ws else 0
@@ -37,14 +37,14 @@ freqOf actualNode (w:ws) = if not (null next) then freqOf hnext ws else 0
         next = searchLetter actualNode w
         hnext = head next
 
--- Sépare une liste de branche : la branche (si elle existe) avec la lettre et les autres
+-- Separate a list of branchs : the one (if she exists) with the letter and others
 separate :: Eq a => [Branch a] -> a -> ([Branch a], [Branch a])
 separate [] _ = ([], [])
 separate ((B c tree):tbranch) letter =
     if c==letter then ([B c tree], tbranch)
     else second (B c tree :) $ separate tbranch letter
 
--- Insert un mot dans un arbre
+-- Insert a word in a tree
 inser :: Tree Char -> CountedWords -> Tree Char
 inser (Node _ branches) (CountedWords [] freq) = Node freq branches
 inser (Node freq branches) (CountedWords (w:ws) f) =
@@ -54,17 +54,17 @@ inser (Node freq branches) (CountedWords (w:ws) f) =
             (next, follow) = separate branches w
             toInsert = CountedWords ws f
 
--- Insert une liste de mots dans un arbre
+-- Insert a list of words in a tree
 listToTree :: Tree Char -> [CountedWords] -> Tree Char
 listToTree = foldl inser
 
--- Donne la liste des lettres possibles pour continuer dans l'arbre
+-- Gives the list of possible letters to continue in the tree
 fromNodesToLetters :: Foldable t => t (Branch a) -> [a]
 fromNodesToLetters = foldr (\(B char _) -> (:) char) []
 
--- Donne les mots similaires à un mot donné (distance fixée par le 2è paramètre)
+-- Gives similar words (distance fixed by the snd parameter)
 similarWord :: Tree Char -> Int -> String -> String -> [CountedWords]
--- similarWord :: Arbre dico -> profondeur -> préfixe actuel -> mot tapé -> [mots proches]
+-- similarWord :: Tree -> distance max -> actual prefixe -> typed word -> [neighbour words]
 similarWord (Node freq _) _ prefixe [] = [CountedWords prefixe freq | freq /= 0]
 similarWord actualNode 0 prefixe word = [CountedWords (prefixe++word) freqWord | freqWord /= 0]
     where freqWord = freqOf actualNode word
@@ -75,9 +75,9 @@ similarWord actualNode@(Node freq branches) n prefixe word@(w:ws) =
     concatMap searchWords branches
 
 similarWords :: Tree Char -> Int -> String -> [CountedWords]
-similarWords tree distance = similarWord tree distance []
+similarWords tree distance word = nub $ similarWord tree distance [] word
 
--- Donne l'abre associé à un préfix (l'arbre des possibles suffixes donc)
+-- Gives the tree associated to a prefix (i.e. the tree of possible suffixes)
 possibleSuffixes :: Tree Char -> String -> Tree Char
 possibleSuffixes tree [] = tree 
 possibleSuffixes actualNode (w:ws) = 
