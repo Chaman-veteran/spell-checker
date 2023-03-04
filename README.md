@@ -1,5 +1,5 @@
-# Lancer le correcteur avec cabal
+# To start the spell checker using cabal
 cabal run
 
-# Pour l'arrêter
-Taper entrer
+# To stop it
+Type enter

@@ -1,6 +1,6 @@
 module WordsTrees where
 import Data.Bifunctor ( second )
-import Data.List ( nub )
+import Data.List ( nub, span )
 
 data Tree a = Node Int [Branch a] 
 data Branch a = B { character :: a, subTree :: Tree a }
@@ -40,10 +40,11 @@ freqOf actualNode (w:ws) = if not (null next) then freqOf hnext ws else 0
 
 -- Separate a list of branchs : the one (if she exists) with the letter and others
 separate :: Eq a => [Branch a] -> a -> ([Branch a], [Branch a])
+-- (doesn't works) separate branchList letter = span (\branchSearched -> (character branchSearched)==letter) branchList
 separate [] _ = ([], [])
-separate ((B c tree):tbranch) letter =
-    if c==letter then ([B c tree], tbranch)
-    else second (B c tree :) $ separate tbranch letter
+separate (branchSearched:tbranch) letter =
+    if character branchSearched==letter then ([branchSearched], tbranch)
+    else second (branchSearched :) $ separate tbranch letter
 
 -- Insert a word in a tree
 inser :: Tree Char -> CountedWords -> Tree Char

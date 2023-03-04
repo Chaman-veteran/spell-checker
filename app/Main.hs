@@ -44,8 +44,7 @@ completeWord :: Tree Char -> String -> [CountedWords]
 completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe 
 
 correctWord :: Tree Char -> String -> [CountedWords]
-correctWord tree word = take 10 . sortFreq .
-                        sortOn snd . map (\x -> (x, strDiff (CountedWords word 0) x)) $ similarWords tree 2 word
+correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWords word 0) x, x)) $ similarWords tree 2 word
 
 correctLine :: Tree Char -> String -> CountedWords
 correctLine tree line = assemble correctWords
@@ -101,8 +100,3 @@ strDiff wx@(CountedWords (x:xs) freqx) wy@(CountedWords (y:ys) freqy) =
                       - if elem x $ nearChar y then 1
                         else 0
               nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
-
-sortFreq :: [(CountedWords, Int)] -> [CountedWords]
-sortFreq [] = []
-sortFreq (x@(CountedWords s fs, nearest):xs) =
-    sort (fst x:[fst w | w <- xs, snd w == nearest]) ++ sortFreq [w | w <- xs, snd w /= nearest]
