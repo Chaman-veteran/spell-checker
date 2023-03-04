@@ -3,23 +3,24 @@ import Data.Bifunctor ( second )
 import Data.List ( nub )
 
 data Tree a = Node Int [Branch a] 
-data Branch a = B a (Tree a)
+data Branch a = B { character :: a, subTree :: Tree a }
 
 data CountedWords = CountedWords {
       word :: String
     , freq :: Int
-    } deriving (Show, Eq)
+    } deriving (Eq)
 
-branchFst :: Branch a -> a
-branchFst (B c _) = c
+instance Ord CountedWords where
+    compare (CountedWords _ f) (CountedWords _ g) = compare g f
 
-branchSnd :: Branch a -> Tree a
-branchSnd (B _ t) = t
+instance Show CountedWords where
+    show (CountedWords w _) = w
+
 
 -- Tree (node) -> letter -> node associed to the letter
 searchLetter :: Eq a => Tree a -> a -> [Tree a]
-searchLetter (Node _ branches) letter = take 1 $ map branchSnd
-                                        $ filter ((==) letter . branchFst) branches 
+searchLetter (Node _ branches) letter = take 1 $ map subTree
+                                        $ filter ((==) letter . character) branches 
 
 -- Predicate to know if the word exists in the tree
 isReal :: Eq a => Tree a -> [a] -> Bool
@@ -49,7 +50,7 @@ inser :: Tree Char -> CountedWords -> Tree Char
 inser (Node _ branches) (CountedWords [] freq) = Node freq branches
 inser (Node freq branches) (CountedWords (w:ws) f) =
         Node freq $ if null next then B w (inser (Node 0 []) toInsert) : branches
-                    else B w (inser (branchSnd $ head next) toInsert) : follow
+                    else B w (inser (subTree $ head next) toInsert) : follow
         where
             (next, follow) = separate branches w
             toInsert = CountedWords ws f
@@ -90,7 +91,7 @@ possibleSuffixes actualNode (w:ws) =
 nextPossibilities :: Tree Char -> String -> [CountedWords]
 nextPossibilities (Node freq []) prefixe = [CountedWords prefixe freq]
 nextPossibilities (Node freq (b:bs)) prefixe = nextPossibilities (Node freq bs) prefixe
-                                            ++ nextPossibilities (branchSnd b) (prefixe++[branchFst b])
+                                            ++ nextPossibilities (subTree b) (prefixe++[character b])
 
 giveSuffixe :: Tree Char -> String -> [CountedWords]
 giveSuffixe tree suffixe = nextPossibilities (possibleSuffixes tree suffixe) suffixe

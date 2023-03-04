@@ -4,12 +4,13 @@
 module Main (main) where
 import System.IO
      ( hClose, hGetContents, openFile, IOMode(ReadMode) )
-import Data.List ( intersperse, sortOn )
+import Data.List ( intersperse, sortOn, sort )
 import Data.Vector ( Vector, fromList, toList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
 import Data.Aeson ( FromJSON, parseJSON, withObject, (.:), decodeStrict )
 import Data.ByteString.Char8 ( pack )
 import Data.Maybe ( fromMaybe, mapMaybe )
+import Data.Ord ( Down, getDown )
 import WordsTrees
 --import Control.Parallel ( par, pseq )
 
@@ -25,9 +26,7 @@ main = do
     file <- openFile "Py_frequence_2mots//freq2.txt" ReadMode
     contents <- hGetContents file
     let inputFreq = words contents
-    --print $ take 10 (map ((\(Just x) -> x).decodeStrict.pack) inputFreq :: [CountedWords])
     let dictionaryTree = listToTree (Node 0 []) $ map (fromMaybe (CountedWords "" 0).decodeStrict.pack) inputFreq
-    --print $ V.find (\z -> 'a' == fst z) actualKeyboard
     putStrLn "Type enter to correct a word or tab + enter to complete the current word."
     putStrLn "Type a word:"
     prompt dictionaryTree
@@ -40,20 +39,18 @@ main = do
                    else do print $ if last line == '\t' then completeWord tree $ init line
                                    else correctWord tree line
                            prompt tree
-                           --print $ isReal t line
 
-completeWord :: Tree Char -> String -> [String]
-completeWord tree prefixe = take 10 . map (\(CountedWords s _) -> s)
-                                $ sortCountedWords $ giveSuffixe tree prefixe 
+completeWord :: Tree Char -> String -> [CountedWords]
+completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe 
 
-correctWord :: Tree Char -> String -> [String]
-correctWord tree word = take 10 . map (\(CountedWords s _,_) -> s) . sortFreq .
+correctWord :: Tree Char -> String -> [CountedWords]
+correctWord tree word = take 10 . sortFreq .
                         sortOn snd . map (\x -> (x, strDiff (CountedWords word 0) x)) $ similarWords tree 2 word
 
-correctLine :: Tree Char -> String -> String
+correctLine :: Tree Char -> String -> CountedWords
 correctLine tree line = assemble correctWords
     where correctWords = map (head . correctWord tree) $ words line
-          assemble = tail . foldl (\w1 w2 -> w1 ++ " " ++ w2 ) ""
+          assemble = foldl (\w1 w2 -> CountedWords (show w1 ++ " " ++ show w2) (-1)) (CountedWords "" (-1))
 
 prettyPrint :: [String] -> IO ()
 prettyPrint l = mapM_ putStr $ ["["] ++ intersperse ", " l ++ ["]\n"]
@@ -105,19 +102,7 @@ strDiff wx@(CountedWords (x:xs) freqx) wy@(CountedWords (y:ys) freqy) =
                         else 0
               nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
 
-freqFromCountedWords :: CountedWords -> Int
-freqFromCountedWords (CountedWords _ f) = f
-
-sortFreq :: [(CountedWords, Int)] -> [(CountedWords,Int)]
+sortFreq :: [(CountedWords, Int)] -> [CountedWords]
 sortFreq [] = []
-sortFreq (x@(CountedWords s fs, nearest):xs) = 
-       [w | w <- xs, snd w == nearest && fs < freqFromCountedWords (fst w)]
-    ++ [x]
-    ++ [w | w <- xs, snd w == nearest && fs >= freqFromCountedWords (fst w)]
-    ++ sortFreq [w | w <- xs, snd w /= nearest]
-
-sortCountedWords :: [CountedWords] -> [CountedWords]
-sortCountedWords [] = []
-sortCountedWords (cw:cws) = sortCountedWords [w | w <- cws, freqFromCountedWords cw < freqFromCountedWords w]
-                        ++ [cw]
-                        ++ sortCountedWords [w | w <- cws, freqFromCountedWords cw >= freqFromCountedWords w]
+sortFreq (x@(CountedWords s fs, nearest):xs) =
+    sort (fst x:[fst w | w <- xs, snd w == nearest]) ++ sortFreq [w | w <- xs, snd w /= nearest]
