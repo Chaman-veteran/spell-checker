@@ -5,12 +5,11 @@ module Main (main) where
 import System.IO
      ( hClose, hGetContents, openFile, IOMode(ReadMode) )
 import Data.List ( intersperse, sortOn, sort )
-import Data.Vector ( Vector, fromList, toList, imap, (!?), (!) )
+import Data.Vector ( Vector, fromList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
 import Data.Aeson ( FromJSON, parseJSON, withObject, (.:), decodeStrict )
 import Data.ByteString.Char8 ( pack )
-import Data.Maybe ( fromMaybe, mapMaybe )
-import Data.Ord ( Down, getDown )
+import Data.Maybe ( mapMaybe )
 import WordsTrees
 --import Control.Parallel ( par, pseq )
 
@@ -26,7 +25,7 @@ main = do
     file <- openFile "Py_frequence_2mots//freq2.txt" ReadMode
     contents <- hGetContents file
     let inputFreq = words contents
-    let dictionaryTree = listToTree (Node 0 []) $ map (fromMaybe (CountedWords "" 0).decodeStrict.pack) inputFreq
+    let dictionaryTree = listToTree $ mapMaybe (decodeStrict.pack) inputFreq
     putStrLn "Type enter to correct a word or tab + enter to complete the current word."
     putStrLn "Type a word:"
     prompt dictionaryTree
