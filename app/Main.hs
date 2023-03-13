@@ -1,14 +1,17 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- TODO LIST --
+-- Rewrite Py_frequence_2mots in Haskell, merging the file assoc & f2
+-- Writing the predictive part of the spell-checker
+
 module Main (main) where
-import System.IO
-     ( hClose, hGetContents, openFile, IOMode(ReadMode) )
+import System.IO ( readFile, IOMode(ReadMode), hSetBuffering )
 import Data.List ( intersperse, sortOn, sort )
 import Data.Vector ( Vector, fromList, imap, (!?), (!) )
 import qualified Data.Vector as V ( map, find )
 import Data.Aeson ( FromJSON, parseJSON, withObject, (.:), decodeStrict )
-import Data.ByteString.Char8 ( pack )
+import Data.ByteString.Char8 ( pack ) 
 import Data.Maybe ( mapMaybe )
 import WordsTrees
 --import Control.Parallel ( par, pseq )
@@ -22,22 +25,20 @@ instance FromJSON CountedWords where
 
 main :: IO ()
 main = do
-    file <- openFile "Py_frequence_2mots//freq2.txt" ReadMode
-    contents <- hGetContents file
+    contents <- readFile "Py_frequence_2mots//freq2.txt"
     let inputFreq = words contents
     let dictionaryTree = listToTree $ mapMaybe (decodeStrict.pack) inputFreq
     putStrLn "Type enter to correct a word or tab + enter to complete the current word."
     putStrLn "Type a word:"
     prompt dictionaryTree
-    hClose file
       where prompt tree =
               do putStr "> "
                  line <- getLine
                  if null line
                    then return ()
-                   else do print $ if last line == '\t' then completeWord tree $ init line
-                                   else correctWord tree line
-                           prompt tree
+                 else do print $ if last line == '\t' then completeWord tree $ init line
+                                 else correctWord tree line
+                         prompt tree
 
 completeWord :: Tree Char -> String -> [CountedWords]
 completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe 
@@ -61,7 +62,7 @@ keyboardEn = fromList
 
 -- Define the zone of near characters
 nearIndices :: Integral a => a -> [a]
-nearIndices ind = case  ind `mod` 10 of
+nearIndices ind = case ind `mod` 10 of
     0 -> [ind+1, ind+10, ind-10, ind-9, ind+11]
     9 -> [ind-1, ind+10, ind-10, ind+9, ind-11]
     _ -> [ind-1, ind+1, ind+10, ind-10, ind-11, ind+11, ind-9, ind+9]
