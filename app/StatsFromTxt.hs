@@ -5,6 +5,7 @@ import qualified Data.Map.Strict as Map ( Map, insert, empty, insertWith, foldrW
 import Control.Monad ( forM )
 
 -- TODO : Serialize the Map (or the Tree?) instead of the binary
+-- see : https://hackage.haskell.org/package/serialise
 
 getWords :: FilePath -> IO [String]
 getWords file = words <$> readFile ("Dictionnaries//"++file)
@@ -33,10 +34,7 @@ mapToStr = Map.foldrWithKey (\key value str -> translateWord key value ++ str) "
                                                   ++",\"freq\":"++show freq
                                                   ++",\"follows\":"++show (take 3 nextWords)++"}"
 
-statsToFile :: IO (Map.Map String (Int, [String])) -> IO ()
-statsToFile stats = do
-  toWrite <- mapToStr <$> stats
-  writeFile "Statistics/result.txt" toWrite
-
 dictToStats :: IO ()
-dictToStats = statsToFile getStatsFromFile
+dictToStats = do
+  stats <- getStatsFromFile
+  writeFile "Statistics/result.txt" $ mapToStr stats
