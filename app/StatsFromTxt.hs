@@ -4,6 +4,8 @@ import System.Directory ( listDirectory )
 import qualified Data.Map.Strict as Map ( Map, insert, empty, insertWith, foldrWithKey )
 import Control.Monad ( forM )
 
+-- TODO : Serialize the Map (or the Tree?) instead of the binary
+
 getWords :: FilePath -> IO [String]
 getWords file = words <$> readFile ("Dictionnaries//"++file)
 
@@ -29,7 +31,7 @@ mapToStr :: Map.Map String (Int, [String]) -> String
 mapToStr = Map.foldrWithKey (\key value str -> translateWord key value ++ str) "" 
   where translateWord word (freq, nextWords) = "{\"word\":"++show word
                                                   ++",\"freq\":"++show freq
-                                                  ++",\"follows\":"++show (take 3 nextWords)
+                                                  ++",\"follows\":"++show (take 3 nextWords)++"}"
 
 statsToFile :: IO (Map.Map String (Int, [String])) -> IO ()
 statsToFile stats = do

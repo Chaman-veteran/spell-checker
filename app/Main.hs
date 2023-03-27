@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- TODO LIST --
--- Rewrite Py_frequence_2mots in Haskell, merging the file assoc & f2
+-- CF StatsFromTxt
 -- Writing the predictive part of the spell-checker
 
 module Main (main) where
