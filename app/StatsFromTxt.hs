@@ -22,7 +22,7 @@ getFiles = do
 
 -- Error : addValue not exhaustive
 addValue :: (Int, [(String,Int)]) -> (Int, [(String,Int)]) -> (Int, [(String,Int)])
-addValue (freq, words) (incFreq, [(nextWord,_)]) = (freq+incFreq, insert (nextWord, pNext) words)
+addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWord, pNext) words)
   where pNext = 1 + maybe 0 snd (find (\w -> fst w == nextWord) words)
 
 -- getFreqnNext Map a word to his frequence and the next words with the probabilities
