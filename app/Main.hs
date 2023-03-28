@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+-- Thanks for archive.org to find free books in txt format --
+
 -- TODO LIST --
 -- See todo in StatsFromTxt
 -- Writing the predictive part of the spell-checker
