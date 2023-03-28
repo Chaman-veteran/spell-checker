@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- TODO LIST --
--- CF StatsFromTxt
+-- See todo in StatsFromTxt
 -- Writing the predictive part of the spell-checker
 
 module Main (main) where
