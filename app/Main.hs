@@ -21,11 +21,11 @@ type Keyboard = Vector Char
 instance FromJSON CountedWords where
     parseJSON = withObject "CountedWords" $ \v -> CountedWords
         <$> v .: "word"
-        <*> v .: "freq"
+        <*> v .: "properties"
 
 main :: IO ()
 main = do
-    contents <- readFile "Py_frequence_2mots//freq2.txt"
+    contents <- readFile "app//Statistics//result.txt"
     let inputFreq = words contents
     let dictionaryTree = listToTree $ mapMaybe (decodeStrict.pack) inputFreq
     putStrLn "Type enter to correct a word or tab + enter to complete the current word."
@@ -44,12 +44,12 @@ completeWord :: Tree Char -> String -> [CountedWords]
 completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe 
 
 correctWord :: Tree Char -> String -> [CountedWords]
-correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWords word 0) x, x)) $ similarWords tree 2 word
+correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWords word (0,[])) x, x)) $ similarWords tree 2 word
 
 correctLine :: Tree Char -> String -> CountedWords
 correctLine tree line = assemble correctWords
     where correctWords = map (head . correctWord tree) $ words line
-          assemble = foldl (\w1 w2 -> CountedWords (show w1 ++ " " ++ show w2) (-1)) (CountedWords "" (-1))
+          assemble = foldl (\w1 w2 -> CountedWords (show w1 ++ " " ++ show w2) (-1,[])) (CountedWords "" (-1, []))
 
 prettyPrint :: [String] -> IO ()
 prettyPrint l = mapM_ putStr $ ["["] ++ intersperse ", " l ++ ["]\n"]

@@ -20,7 +20,6 @@ getFiles = do
   wordsPerFile <- forM files getWords
   return $ concat wordsPerFile
 
--- Error : addValue not exhaustive
 addValue :: (Int, [(String,Int)]) -> (Int, [(String,Int)]) -> (Int, [(String,Int)])
 addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWord, pNext) words)
   where pNext = 1 + maybe 0 snd (find (\w -> fst w == nextWord) words)
@@ -41,9 +40,9 @@ getStatsFromFile = getNextsSorted.getFreqnNext <$> getFiles
 
 mapToStr :: Map.Map String (Int, [String]) -> String
 mapToStr = Map.foldrWithKey (\key value str -> translateWord key value ++ str) "" 
-  where translateWord word (freq, nextWords) = "{\"word\":"++show word
-                                                  ++",\"freq\":"++show freq
-                                                  ++",\"follows\":"++show (take 3 nextWords)++"}"
+  where translateWord word (freq, nextWords) = "{\"word\":"++ show word
+                                                  ++",\"properties\":["++show freq
+                                                  ++","++show (take 3 nextWords)++"]} "
 
 dictToStats :: IO ()
 dictToStats = do

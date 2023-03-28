@@ -6,16 +6,18 @@ import Data.Maybe ( fromMaybe )
 import qualified Data.Map.Strict as Map ( Map, insert, empty, foldrWithKey )
 import Data.Map.Strict ( (!?) )
 
-data Tree a = Node {frequence :: Int, branches :: Map.Map a (Tree a)}
+type WordProperties = (Int, [String])
+
+data Tree a = Node {freqNFollowing :: WordProperties , branches :: Map.Map a (Tree a)}
 
 data CountedWords = CountedWords {
       word :: String
-    , freq :: Int
+    , freqNNextWord :: WordProperties
     } deriving (Eq)
 
 instance Ord CountedWords where
     compare :: CountedWords -> CountedWords -> Ordering
-    compare (CountedWords _ f) (CountedWords _ g) = compare g f
+    compare (CountedWords _ (f,_)) (CountedWords _ (g,_)) = compare g f
 
 instance Show CountedWords where
     show :: CountedWords -> String
@@ -23,34 +25,35 @@ instance Show CountedWords where
 
 -- Predicate to know if the word exists in the tree
 isReal :: Ord a => [a] -> Tree a -> Bool
-isReal [] (Node freq _) = freq /= 0
+isReal [] (Node (freq,_) _) = freq /= 0
 isReal (w:ws) actualNode = maybe False (isReal ws) $ branches actualNode !? w
 
--- Return the frequence of the word if he exists, Nothing else
-freqOf :: Ord a => [a] -> Tree a  -> Int
-freqOf [] (Node freq _) = freq
-freqOf (w:ws) actualNode = maybe 0 (freqOf ws) $ branches actualNode !? w
+-- Return the frequence and the next probable words
+-- of the word if he exists, Nothing else
+freqNFollowingOf :: Ord a => [a] -> Tree a  -> (Int, [String])
+freqNFollowingOf [] (Node (freq, nextWords) _) = (freq, nextWords)
+freqNFollowingOf (w:ws) actualNode = maybe (0,[]) (freqNFollowingOf ws) $ branches actualNode !? w
 
 -- Insert a word in a tree
 inser :: CountedWords -> Tree Char -> Tree Char
-inser (CountedWords [] freq) (Node _ branches) = Node freq branches
-inser (CountedWords (w:ws) f) (Node freq branches) = 
-    Node freq $ Map.insert w (inser wordToInsert $ fromMaybe (Node 0 Map.empty) next) branches
+inser (CountedWords [] (freq, nextWords)) (Node _ branches) = Node (freq, nextWords) branches
+inser (CountedWords (w:ws) (f, nextWords)) (Node (freq, followingActual) branches) = 
+    Node (freq, followingActual) $ Map.insert w (inser wordToInsert $ fromMaybe (Node (0,[]) Map.empty) next) branches
         where
             next = branches !? w
-            wordToInsert = CountedWords ws f
+            wordToInsert = CountedWords ws (f, nextWords)
 
 -- Insert a list of words in a tree
 listToTree :: [CountedWords] -> Tree Char
-listToTree = foldr inser (Node 0 Map.empty)
+listToTree = foldr inser (Node (0,[]) Map.empty)
 
 -- Gives similar words (distance fixed by the snd parameter)
-similarWord :: Tree Char -> Int -> String -> String -> [CountedWords]
 -- similarWord :: Tree -> distance max -> actual prefixe -> typed word -> [neighbour words]
-similarWord (Node freq _) _ prefixe [] = [CountedWords prefixe freq | freq /= 0]
-similarWord actualNode 0 prefixe word = [CountedWords (prefixe++word) freqWord | freqWord /= 0]
-        where freqWord = freqOf word actualNode
-similarWord actualNode@(Node freq branches) n prefixe word@(w:ws) =
+similarWord :: Tree Char -> Int -> String -> String -> [CountedWords]
+similarWord (Node (freq, nextWords) _) _ prefixe [] = [CountedWords prefixe (freq, nextWords) | freq /= 0]
+similarWord actualNode 0 prefixe word = [CountedWords (prefixe++word) freqWord | fst freqWord /= 0]
+        where freqWord = freqNFollowingOf word actualNode
+similarWord actualNode@(Node (freq, nextWords) branches) n prefixe word@(w:ws) =
     Map.foldrWithKey searchWords [] branches
         where searchWords l nextTree accum =
                             (if l/=w then similarWord actualNode (n-1) prefixe (l:ws)
@@ -62,7 +65,7 @@ similarWords tree distance word = nub $ similarWord tree distance [] word
 -- Gives the tree associated to a prefix (i.e. the tree of possible suffixes)
 possibleSuffixes :: String -> Tree Char -> Tree Char
 possibleSuffixes [] tree = tree 
-possibleSuffixes (w:ws) tree = maybe (Node 0 Map.empty) (possibleSuffixes ws) $ branches tree !? w
+possibleSuffixes (w:ws) tree = maybe (Node (0,[]) Map.empty) (possibleSuffixes ws) $ branches tree !? w
 
 
 nextPossibilities :: Tree Char -> String -> [CountedWords]
