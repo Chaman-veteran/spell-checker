@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, DeriveFunctor #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 -- Thanks for archive.org to find free books in txt format --
@@ -13,11 +13,12 @@ import Control.Monad.Cont
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
 import Data.ByteString.Char8 (pack)
+import Data.Char (isSpace)
 import Data.List (intersperse, sort, sortOn)
 import Data.Maybe (mapMaybe)
 import Data.Vector (Vector, fromList, imap, (!), (!?))
 import qualified Data.Vector as V (find, map)
-import System.IO (IOMode (ReadMode), hSetBuffering, readFile)
+import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, stdin, BufferMode (NoBuffering))
 import WordsTrees
 
 -- import Control.Parallel ( par, pseq )
@@ -34,6 +35,7 @@ instance FromJSON CountedWords where
 
 main :: IO ()
 main = do
+  hSetBuffering stdin NoBuffering
   contents <- readFile "app//Statistics//result.txt"
   let inputFreq = words contents
   let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
@@ -45,16 +47,24 @@ main = do
 prompt :: Tree Char -> (() -> ContT r IO ()) -> ContT r IO ()
 prompt tree exit = do
   restart <- label_
-  line <- liftIO $ putStr "> " >> getLine
-  if null line
-    then exit ()
-    else do
-      liftIO $
-        print $
-          if last line == '\t'
-            then completeWord tree $ init line
-            else correctWord tree line
-      restart
+  query <- liftIO $ putStr "> " >> hFlush stdout >> getWord
+  case query of
+    Complete word -> liftIO $ do
+      putStrLn ""
+      print $ completeWord tree word
+    Correct "" -> exit ()
+    Correct word -> liftIO $ print $ correctWord tree word
+  restart
+
+data Query a = Complete a | Correct a deriving Functor
+
+getWord :: IO (Query String)
+getWord = do
+  c <- getChar
+  case c of
+    '\t' -> return $ Complete []
+    _ | isSpace c -> return $ Correct []
+      | otherwise -> fmap (c:) <$> getWord
 
 completeWord :: Tree Char -> String -> [CountedWords]
 completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe
