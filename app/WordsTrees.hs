@@ -3,12 +3,12 @@
 module WordsTrees where
 import Data.List ( nub )
 import Data.Maybe ( fromMaybe )
-import qualified Data.Map.Strict as Map ( Map, insert, empty, foldrWithKey )
-import Data.Map.Strict ( (!?) )
+import qualified Data.Map.Strict as M ( insert, empty, foldrWithKey )
+import Data.Map.Strict ( Map, (!?) )
 
 type WordProperties = (Int, [String])
 
-data Tree a = Node {freqNFollowing :: WordProperties , branches :: Map.Map a (Tree a)}
+data Tree a = Node {freqNFollowing :: WordProperties , branches :: Map a (Tree a)}
 
 data CountedWords = CountedWords {
       word :: String
@@ -38,14 +38,14 @@ freqNFollowingOf (w:ws) actualNode = maybe (0,[]) (freqNFollowingOf ws) $ branch
 inser :: CountedWords -> Tree Char -> Tree Char
 inser (CountedWords [] (freq, nextWords)) (Node _ branches) = Node (freq, nextWords) branches
 inser (CountedWords (w:ws) (f, nextWords)) (Node (freq, followingActual) branches) = 
-    Node (freq, followingActual) $ Map.insert w (inser wordToInsert $ fromMaybe (Node (0,[]) Map.empty) next) branches
+    Node (freq, followingActual) $ M.insert w (inser wordToInsert $ fromMaybe (Node (0,[]) M.empty) next) branches
         where
             next = branches !? w
             wordToInsert = CountedWords ws (f, nextWords)
 
 -- Insert a list of words in a tree
 listToTree :: [CountedWords] -> Tree Char
-listToTree = foldr inser (Node (0,[]) Map.empty)
+listToTree = foldr inser (Node (0,[]) M.empty)
 
 -- Gives similar words (distance fixed by the snd parameter)
 -- similarWord :: Tree -> distance max -> actual prefixe -> typed word -> [neighbour words]
@@ -54,7 +54,7 @@ similarWord (Node (freq, nextWords) _) _ prefixe [] = [CountedWords prefixe (fre
 similarWord actualNode 0 prefixe word = [CountedWords (prefixe++word) freqWord | fst freqWord /= 0]
         where freqWord = freqNFollowingOf word actualNode
 similarWord actualNode@(Node (freq, nextWords) branches) n prefixe word@(w:ws) =
-    Map.foldrWithKey searchWords [] branches
+    M.foldrWithKey searchWords [] branches
         where searchWords l nextTree accum =
                             (if l/=w then similarWord actualNode (n-1) prefixe (l:ws)
                              else similarWord nextTree n (prefixe++[w]) ws) ++ accum
@@ -65,12 +65,12 @@ similarWords tree distance word = nub $ similarWord tree distance [] word
 -- Gives the tree associated to a prefix (i.e. the tree of possible suffixes)
 possibleSuffixes :: String -> Tree Char -> Tree Char
 possibleSuffixes [] tree = tree 
-possibleSuffixes (w:ws) tree = maybe (Node (0,[]) Map.empty) (possibleSuffixes ws) $ branches tree !? w
+possibleSuffixes (w:ws) tree = maybe (Node (0,[]) M.empty) (possibleSuffixes ws) $ branches tree !? w
 
 
 nextPossibilities :: Tree Char -> String -> [CountedWords]
 nextPossibilities (Node freq branches) prefixe =
-    Map.foldrWithKey getPossibilities [CountedWords prefixe freq] branches
+    M.foldrWithKey getPossibilities [CountedWords prefixe freq] branches
         where getPossibilities char subTree accum = nextPossibilities subTree (prefixe++[char]) ++ accum
 
 giveSuffixe :: Tree Char -> String -> [CountedWords]
