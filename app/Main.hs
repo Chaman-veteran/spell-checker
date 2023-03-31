@@ -134,5 +134,3 @@ strDiff wx@(CountedWords (x : xs) freqx) wy@(CountedWords (y : ys) freqy) =
           then 1
           else 0
     nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
-
-module nil where
