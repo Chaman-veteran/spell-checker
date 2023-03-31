@@ -1,4 +1,5 @@
 module StatsFromTxt where
+
 import System.IO ( readFile, writeFile )
 import System.Directory ( listDirectory )
 import qualified Data.Map.Strict as Map

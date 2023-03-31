@@ -1,3 +1,4 @@
+-- |
 {-# LANGUAGE OverloadedStrings, DeriveFunctor #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -18,8 +19,8 @@ import Data.List (intersperse, sort, sortOn)
 import Data.Maybe (mapMaybe)
 import Data.Vector (Vector, fromList, imap, (!), (!?))
 import qualified Data.Vector as V (find, map)
+import Data.WordTree
 import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, stdin, BufferMode (NoBuffering))
-import WordsTrees
 
 -- import Control.Parallel ( par, pseq )
 
@@ -133,3 +134,5 @@ strDiff wx@(CountedWords (x : xs) freqx) wy@(CountedWords (y : ys) freqy) =
           then 1
           else 0
     nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
+
+module nil where
