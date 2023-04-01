@@ -16,7 +16,7 @@ import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
 import Data.ByteString.Char8 (pack)
 import Data.Char (isSpace)
 import Data.List (intersperse, sort, sortOn)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Vector (Vector, fromList, imap, (!), (!?))
 import qualified Data.Vector as V (find, map)
 import Data.WordTree
@@ -71,13 +71,13 @@ completeWord :: Tree Char -> String -> [CountedWords]
 completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe
 
 correctWord :: Tree Char -> String -> [CountedWords]
-correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWords word (0, [])) x, x)) $ similarWords tree 2 word
+correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWords word (WordProperties 0 [])) x, x)) $ similarWords tree 2 word
 
 correctLine :: Tree Char -> String -> CountedWords
 correctLine tree line = assemble correctWords
   where
     correctWords = map (head . correctWord tree) $ words line
-    assemble = foldl (\w1 w2 -> CountedWords (show w1 ++ " " ++ show w2) (-1, [])) (CountedWords "" (-1, []))
+    assemble = foldl (\w1 w2 -> CountedWords (show w1 ++ " " ++ show w2) (WordProperties (negate 1) [])) (CountedWords "" (WordProperties (negate 1) []))
 
 prettyPrint :: [String] -> IO ()
 prettyPrint l = mapM_ putStr $ ["["] ++ intersperse ", " l ++ ["]\n"]
@@ -114,8 +114,7 @@ actualKeyboard :: Vector (Char, [Char])
 actualKeyboard = nearChars keyboardEn
 
 outMaybeAssocList :: Maybe (a, [b]) -> [b]
-outMaybeAssocList Nothing = []
-outMaybeAssocList (Just (_, l)) = l
+outMaybeAssocList = maybe [] snd
 
 -- Calcul of the distance between two words (Hamming's distance modifed)
 strDiff :: CountedWords -> CountedWords -> Int
