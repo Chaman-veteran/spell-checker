@@ -10,10 +10,10 @@ build-type: Simple
 -- description:
 
 -- A URL where users can report bugs.
--- bug-reports:
+-- bug-reports: https://github.com/Chaman-veteran/spell-checker
 
 -- The license under which the package is released.
--- license: aucune
+-- license: MIT License
 
 -- The package author(s).
 author: Nathan Maillet
@@ -61,6 +61,7 @@ executable spell-checker
         containers  ^>= 0.6.0.0,
         directory   ^>= 1.3.0.0,
         mtl         ^>= 2.3.1
+
     hs-source-dirs:   app
     default-language: Haskell2010
 
@@ -78,7 +79,6 @@ benchmark spell-checker-bench
         containers  ^>= 0.6.0.0,
         directory   ^>= 1.3.0.0,
         mtl         ^>= 2.3.1
-
 
     hs-source-dirs: bench
     default-language: Haskell2010

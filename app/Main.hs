@@ -1,8 +1,10 @@
--- |
 {-# LANGUAGE OverloadedStrings, DeriveFunctor #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
--- Thanks for archive.org to find free books in txt format --
+-- |
+
+
+-- Thanks to archive.org for indexing free books in txt format --
 
 -- TODO LIST --
 -- See todo in StatsFromTxt
@@ -10,7 +12,7 @@
 
 module Main (main) where
 
-import Control.Monad.Cont
+import Control.Monad.Cont (ContT(runContT), label_, MonadCont(callCC))
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
 import Data.ByteString.Char8 (pack)
@@ -19,10 +21,9 @@ import Data.List (intersperse, sort, sortOn)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Vector (Vector, fromList, imap, (!), (!?))
 import qualified Data.Vector as V (find, map)
-import Data.WordTree
 import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, stdin, BufferMode (NoBuffering))
 
--- import Control.Parallel ( par, pseq )
+import Data.WordTree
 
 type Keyboard = Vector Char
 
