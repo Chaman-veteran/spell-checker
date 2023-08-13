@@ -1,3 +1,12 @@
+-- --------------------------------------------------------------------------
+-- |
+-- Module      :  StatsFromTxt
+--
+--
+-- A module to construct statistical data out of text files.
+--
+-----------------------------------------------------------------------------
+
 module StatsFromTxt where
 
 import System.IO (readFile, writeFile)

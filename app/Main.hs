@@ -1,7 +1,14 @@
 {-# LANGUAGE OverloadedStrings, DeriveFunctor #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+-- --------------------------------------------------------------------------
 -- |
+-- Module      :  Main
+--
+--
+--  CLI spell checker.
+--
+-----------------------------------------------------------------------------
 
 
 -- Thanks to archive.org for indexing free books in txt format --
@@ -25,19 +32,19 @@ import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, st
 
 import Data.WordTree
 
+-- | Used Keyboard, the only one supported for now is QWERTY
 type Keyboard = Vector Char
 
 instance FromJSON CountedWords where
   parseJSON = withObject "CountedWords" $ \v ->
     CountedWords
-      <$> v
-      .: "word"
-      <*> v
-      .: "properties"
+      <$> v .: "word"
+      <*> v .: "properties"
 
+-- | Entrypoint into the spell-checker
 main :: IO ()
 main = do
-  hSetBuffering stdin NoBuffering
+  hSetBuffering stdin NoBuffering -- Doesn't work on Windows
   contents <- readFile "app//Statistics//result.txt"
   let inputFreq = words contents
   let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq

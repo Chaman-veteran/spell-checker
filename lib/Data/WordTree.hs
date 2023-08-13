@@ -3,7 +3,7 @@
 -- Module      :  Data.WordTree
 --
 --
--- WordTree. A module for generic functions on trees made out of words.
+-- A module for generic functions on trees made out of words.
 --
 -----------------------------------------------------------------------------
 
