@@ -35,9 +35,9 @@ import Data.WordTree
 -- | Used Keyboard, the only one supported for now is QWERTY
 type Keyboard = Vector Char
 
-instance FromJSON CountedWords where
-  parseJSON = withObject "CountedWords" $ \v ->
-    CountedWords
+instance FromJSON CountedWord where
+  parseJSON = withObject "CountedWord" $ \v ->
+    CountedWord
       <$> v .: "word"
       <*> v .: "properties"
 
@@ -75,21 +75,20 @@ getWord = do
     _ | isSpace c -> return $ Correct []
       | otherwise -> fmap (c:) <$> getWord
 
-completeWord :: Tree Char -> String -> [CountedWords]
+completeWord :: Tree Char -> String -> [CountedWord]
 completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe
 
-correctWord :: Tree Char -> String -> [CountedWords]
-correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWords word (WordProperties 0 [])) x, x)) $ similarWords tree 2 word
+correctWord :: Tree Char -> String -> [CountedWord]
+correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWord word nullProperties) x, x)) $ similarWords tree 2 word
 
-correctLine :: Tree Char -> String -> CountedWords
+correctLine :: Tree Char -> String -> CountedWord
 correctLine tree line = assemble correctWords
   where
     correctWords = map (head . correctWord tree) $ words line
-    assemble = foldl (\w1 w2 -> CountedWords (show w1 ++ " " ++ show w2) (WordProperties (negate 1) [])) (CountedWords "" (WordProperties (negate 1) []))
+    assemble = foldl (\w1 w2 -> CountedWord (show w1 ++ " " ++ show w2) (WordProperties (negate 1) []))
+                      (CountedWord "" nullProperties)
 
-prettyPrint :: [String] -> IO ()
-prettyPrint l = mapM_ putStr $ ["["] ++ intersperse ", " l ++ ["]\n"]
-
+-- | QWERTY Keyboard used to get neighboors leters from the on typed 
 keyboardEn :: Keyboard
 keyboardEn =
   fromList
@@ -98,46 +97,43 @@ keyboardEn =
       'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.'
     ]
 
--- Define the zone of near characters
+-- | Give the zone of index of near characters from the index of the one given
 nearIndices :: Integral a => a -> [a]
 nearIndices ind = case ind `mod` 10 of
   0 -> [ind + 1, ind + 10, ind - 10, ind - 9, ind + 11]
   9 -> [ind - 1, ind + 10, ind - 10, ind + 9, ind - 11]
   _ -> [ind - 1, ind + 1, ind + 10, ind - 10, ind - 11, ind + 11, ind - 9, ind + 9]
 
--- Gives near chars for each one on the keyboard
+-- | Give the matrix of neighboorhood in place of the character of the keyboard 
 charsPerimeter :: Keyboard -> Vector [Char]
 charsPerimeter keyboard = imap (\ind _ -> mapMaybe (keyboard !?) $ nearIndices ind) keyboard
 
--- Association between chars and his neighboors
+-- | Given a keyboard and a perimeter, associate between each characters and his neighboors
 associateNearChars :: Keyboard -> Vector [Char] -> Vector (Char, [Char])
 associateNearChars keyboard perimeter = imap (\ind char -> (char, perimeter ! ind)) keyboard
 
--- Gives the neighboors of all chars
+-- | Gives the neighboors of all characters
 nearChars :: Keyboard -> Vector (Char, [Char])
 nearChars keyboard = associateNearChars keyboard $ charsPerimeter keyboard
 
--- Used keyboard
+-- | The keyboard we choose to use
 actualKeyboard :: Vector (Char, [Char])
 actualKeyboard = nearChars keyboardEn
 
-outMaybeAssocList :: Maybe (a, [b]) -> [b]
-outMaybeAssocList = maybe [] snd
-
--- Calcul of the distance between two words (Hamming's distance modifed)
-strDiff :: CountedWords -> CountedWords -> Int
-strDiff (CountedWords x _) (CountedWords [] _) = length x
-strDiff (CountedWords [] _) (CountedWords y _) = length y
-strDiff wx@(CountedWords (x : xs) freqx) wy@(CountedWords (y : ys) freqy) =
+-- | Calcul of the distance between two words (Hamming's distance modifed)
+strDiff :: CountedWord -> CountedWord -> Int
+strDiff (CountedWord x _) (CountedWord [] _) = length x
+strDiff (CountedWord [] _) (CountedWord y _) = length y
+strDiff wx@(CountedWord (x : xs) freqx) wy@(CountedWord (y : ys) freqy) =
   if x == y
-    then strDiff (CountedWords xs freqx) (CountedWords ys freqy)
+    then strDiff (CountedWord xs freqx) (CountedWord ys freqy)
     else 2 + diffMin
   where
-    diffMin = min diffMinq $ min (strDiff (CountedWords xs freqx) wy) (strDiff wx (CountedWords ys freqy))
+    diffMin = min diffMinq $ min (strDiff (CountedWord xs freqx) wy) (strDiff wx (CountedWord ys freqy))
     -- Case where they are "near" :
     diffMinq =
-      strDiff (CountedWords xs freqx) (CountedWords ys freqy)
+      strDiff (CountedWord xs freqx) (CountedWord ys freqy)
         - if elem x $ nearChar y
           then 1
           else 0
-    nearChar c = outMaybeAssocList $ V.find (\z -> c == fst z) actualKeyboard
+    nearChar c = maybe [] snd $ V.find (\z -> c == fst z) actualKeyboard

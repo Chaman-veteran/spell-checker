@@ -31,7 +31,7 @@ library spell-checker-lib
         Data.WordTree
 
     build-depends:
-        base        ^>= 4.16.3.0,
+        base        ^>= 4.18.0.0,
         parallel    ^>= 1.0.0.0,
         vector      ^>= 0.12.0.0,
         aeson       ^>= 2.1.0.0,
@@ -53,7 +53,7 @@ executable spell-checker
     -- other-extensions:
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.16.3.0,
+        base        ^>= 4.18.0.0,
         parallel    ^>= 1.0.0.0,
         vector      ^>= 0.12.0.0,
         aeson       ^>= 2.1.0.0,
@@ -65,13 +65,12 @@ executable spell-checker
     hs-source-dirs:   app
     default-language: Haskell2010
 
-
 benchmark spell-checker-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.16.3.0,
+        base        ^>= 4.18.0.0,
         parallel    ^>= 1.0.0.0,
         vector      ^>= 0.12.0.0,
         aeson       ^>= 2.1.0.0,
