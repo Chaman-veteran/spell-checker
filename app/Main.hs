@@ -16,6 +16,7 @@
 -- TODO LIST --
 -- See todo in StatsFromTxt
 -- Writing the predictive part of the spell-checker
+-- Better workaround for buffer on windows
 
 module Main (main) where
 
@@ -29,6 +30,8 @@ import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Vector (Vector, fromList, imap, (!), (!?))
 import qualified Data.Vector as V (find, map)
 import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, stdin, BufferMode (NoBuffering))
+import System.IO.NoBufferingWorkaround (initGetCharNoBuffering, getCharNoBuffering)
+import Data.Ord ( Down(Down) )
 
 import Data.WordTree
 
@@ -44,7 +47,9 @@ instance FromJSON CountedWord where
 -- | Entrypoint into the spell-checker
 main :: IO ()
 main = do
-  hSetBuffering stdin NoBuffering -- Doesn't work on Windows
+  -- hSetBuffering stdin NoBuffering -- Doesn't work on Windows
+  initGetCharNoBuffering
+  hSetBuffering stdout NoBuffering
   contents <- readFile "app//Statistics//result.txt"
   let inputFreq = words contents
   let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
@@ -69,14 +74,15 @@ data Query a = Complete a | Correct a deriving Functor
 
 getWord :: IO (Query String)
 getWord = do
-  c <- getChar
+  c <- getCharNoBuffering
+  putChar c
   case c of
     '\t' -> return $ Complete []
     _ | isSpace c -> return $ Correct []
       | otherwise -> fmap (c:) <$> getWord
 
 completeWord :: Tree Char -> String -> [CountedWord]
-completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe
+completeWord tree prefixe = take 10 . sortOn Down $ giveSuffixe tree prefixe
 
 correctWord :: Tree Char -> String -> [CountedWord]
 correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWord word nullProperties) x, x)) $ similarWords tree 2 word
