@@ -7,7 +7,7 @@
 --
 -----------------------------------------------------------------------------
 
-module StatsFromTxt where
+module StatsFromTxt (dictToStats) where
 
 import System.IO (readFile, writeFile)
 import System.Directory (listDirectory)

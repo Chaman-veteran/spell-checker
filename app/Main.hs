@@ -22,6 +22,7 @@ module Main (main) where
 
 import Control.Monad.Cont (ContT(runContT), label_, MonadCont(callCC))
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad (when)
 import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
 import Data.ByteString.Char8 (pack)
 import Data.Char (isSpace)
@@ -31,7 +32,8 @@ import Data.Vector (Vector, fromList, imap, (!), (!?))
 import qualified Data.Vector as V (find, map)
 import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, stdin, BufferMode (NoBuffering))
 import System.IO.NoBufferingWorkaround (initGetCharNoBuffering, getCharNoBuffering)
-import Data.Ord ( Down(Down) )
+import Data.Ord (Down(Down))
+import System.Info (os)
 
 import Data.WordTree
 
@@ -47,17 +49,17 @@ instance FromJSON CountedWord where
 -- | Entrypoint into the spell-checker
 main :: IO ()
 main = do
-  -- hSetBuffering stdin NoBuffering -- Doesn't work on Windows
-  initGetCharNoBuffering
-  hSetBuffering stdout NoBuffering
+  if os == "mingw32" then initGetCharNoBuffering >> hSetBuffering stdout NoBuffering
+  else hSetBuffering stdin NoBuffering
   contents <- readFile "app//Statistics//result.txt"
   let inputFreq = words contents
   let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
-  putStrLn "Type enter to correct a word or tab + enter to complete the current word."
+  putStrLn "Type enter to correct a word or tab to complete it."
   putStrLn "Type a word:"
   (`runContT` return) $ do
     callCC $ prompt dictionaryTree
 
+-- | Prompts a new word as long as the word to correct is not empty
 prompt :: Tree Char -> (() -> ContT r IO ()) -> ContT r IO ()
 prompt tree exit = do
   restart <- label_
@@ -70,23 +72,31 @@ prompt tree exit = do
     Correct word -> liftIO $ print $ correctWord tree word
   restart
 
+-- | The user can either ask for completion or correction
 data Query a = Complete a | Correct a deriving Functor
 
+-- | Give the input of the user
 getWord :: IO (Query String)
 getWord = do
-  c <- getCharNoBuffering
-  putChar c
+  c <- if os == "mingw32" then getCharNoBuffering
+       else getChar
+  when (os == "mingw32") $ putChar c
   case c of
     '\t' -> return $ Complete []
-    _ | isSpace c -> return $ Correct []
+    _ | isSpace c -> do
+          when (os == "mingw32") $ putChar '\n'
+          return $ Correct []
       | otherwise -> fmap (c:) <$> getWord
 
+-- | Complete user's input
 completeWord :: Tree Char -> String -> [CountedWord]
 completeWord tree prefixe = take 10 . sortOn Down $ giveSuffixe tree prefixe
 
+-- | Correct user's input
 correctWord :: Tree Char -> String -> [CountedWord]
 correctWord tree word = take 10 . sortOn (\x -> (strDiff (CountedWord word nullProperties) x, x)) $ similarWords tree 2 word
 
+-- | [Not used for now] Correct a whole line, giving only one answer
 correctLine :: Tree Char -> String -> CountedWord
 correctLine tree line = assemble correctWords
   where
