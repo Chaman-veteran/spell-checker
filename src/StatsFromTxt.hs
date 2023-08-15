@@ -23,12 +23,12 @@ import Data.Bifunctor (second)
 
 -- | Fetch words from a file
 getWords :: FilePath -> IO [String]
-getWords file = words <$> readFile ("Dictionaries//"++file)
+getWords file = words <$> readFile ("Dictionaries//en//"++file)
 
 -- | Assemble all words from different dictionaries
 getFiles :: IO [String]
 getFiles = do
-  files <- listDirectory "Dictionaries"
+  files <- listDirectory "Dictionaries//en"
   wordsPerFile <- forM files getWords
   return $ concat wordsPerFile
 

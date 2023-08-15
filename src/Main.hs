@@ -15,8 +15,6 @@
 
 -- TODO LIST --
 -- See todo in StatsFromTxt
--- Writing the predictive part of the spell-checker
--- Better workaround for buffer on windows
 
 module Main (main) where
 
@@ -51,7 +49,7 @@ main :: IO ()
 main = do
   if os == "mingw32" then initGetCharNoBuffering >> hSetBuffering stdout NoBuffering
   else hSetBuffering stdin NoBuffering
-  contents <- readFile "app//Statistics//result.txt"
+  contents <- readFile "Statistics//result.txt"
   let inputFreq = words contents
   let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
   putStrLn "Type enter to correct a word or tab to complete it."
@@ -86,7 +84,7 @@ getWord = do
     _ | isSpace c -> do
           when (os == "mingw32") $ putChar '\n'
           return $ Correct []
-      | otherwise -> fmap (c:) <$> getWord
+    _ -> fmap (c:) <$> getWord
 
 -- | Complete user's input
 completeWord :: Tree Char -> String -> [CountedWord]

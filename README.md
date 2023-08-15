@@ -5,7 +5,13 @@
 cabal run spell-checker
 ```
 
-## To run the bench
+## To gets statistical results from english dictionaries using ghci
+```
+ghci> :l src\StatsFromTxt.hs
+ghci> dictToStats
+```
+
+## To run the bench using cabal
 ``` sh
 cabal bench
 ```
