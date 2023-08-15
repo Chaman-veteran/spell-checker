@@ -104,7 +104,10 @@ nextPossibilities :: Tree Char -> String -> [CountedWord]
 nextPossibilities (Node freq branches) prefixe =
   M.foldrWithKey getPossibilities [CountedWord prefixe freq] branches
   where
-    getPossibilities char subTree accum = nextPossibilities subTree (prefixe ++ [char]) ++ accum
+    getPossibilities char subTree accum = filter existingCountedWord (nextPossibilities subTree (prefixe ++ [char])) 
+                                            ++ accum
+    -- ^ Gets all suffixes of the current prefixe (with the last letter being char) if we visit the sub tree subTree
+    existingCountedWord = (/= 0) . (frequency.freqNInfo)
 
 -- | Gives all possible suffixes to complete a word
 giveSuffixe :: Tree Char -> String -> [CountedWord]
