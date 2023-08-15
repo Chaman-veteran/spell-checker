@@ -90,7 +90,7 @@ getWord = do
 
 -- | Complete user's input
 completeWord :: Tree Char -> String -> [CountedWord]
-completeWord tree prefixe = take 10 . sort $ giveSuffixe tree prefixe
+completeWord tree prefixe = take 10 . sortOn Down $ giveSuffixe tree prefixe
 
 -- | Correct user's input
 correctWord :: Tree Char -> String -> [CountedWord]
