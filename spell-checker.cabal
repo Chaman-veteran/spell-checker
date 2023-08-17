@@ -13,7 +13,7 @@ synopsis: Spell-checker in Haskell
 bug-reports: https://github.com/Chaman-veteran/spell-checker
 
 -- The license under which the package is released.
-license: MIT License
+license: MIT
 
 -- The package author(s).
 author: Nathan Maillet
