@@ -32,13 +32,8 @@ library spell-checker-lib
 
     build-depends:
         base        ^>= 4.18.0.0,
-        parallel    ^>= 1.0.0.0,
-        vector      ^>= 0.12.0.0,
         aeson       ^>= 2.1.0.0,
-        bytestring  ^>= 0.11.3.1,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
-        mtl         ^>= 2.3.1
+        containers  ^>= 0.6.0.0
 
     hs-source-dirs: lib
     default-language: Haskell2010
@@ -54,13 +49,12 @@ executable spell-checker
     build-depends:
         spell-checker:spell-checker-lib,
         base        ^>= 4.18.0.0,
-        parallel    ^>= 1.0.0.0,
         vector      ^>= 0.12.0.0,
         aeson       ^>= 2.1.0.0,
-        bytestring  ^>= 0.11.3.1,
         containers  ^>= 0.6.0.0,
         directory   ^>= 1.3.0.0,
         mtl         ^>= 2.3.1,
+        bytestring  ^>= 0.11.4.0,
         no-buffering-workaround ^>= 0.1.0.0
 
     hs-source-dirs:   src
@@ -69,16 +63,16 @@ executable spell-checker
 benchmark spell-checker-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
+
     build-depends:
         spell-checker:spell-checker-lib,
         base        ^>= 4.18.0.0,
-        parallel    ^>= 1.0.0.0,
         vector      ^>= 0.12.0.0,
         aeson       ^>= 2.1.0.0,
-        bytestring  ^>= 0.11.3.1,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
-        mtl         ^>= 2.3.1
+        mtl         ^>= 2.3.1,
+        deepseq     ^>= 1.4.8.1,
+        bytestring  ^>= 0.11.4.0,
+        criterion   ^>= 1.6.3.0
 
     hs-source-dirs: bench
     default-language: Haskell2010
