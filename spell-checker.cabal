@@ -4,16 +4,16 @@ version:            0.1.0.0
 build-type: Simple
 
 -- A short (one-line) description of the package.
--- synopsis: Spell-checker in Haskell
+synopsis: Spell-checker in Haskell
 
 -- A longer description of the package.
 -- description:
 
 -- A URL where users can report bugs.
--- bug-reports: https://github.com/Chaman-veteran/spell-checker
+bug-reports: https://github.com/Chaman-veteran/spell-checker
 
 -- The license under which the package is released.
--- license: MIT License
+license: MIT License
 
 -- The package author(s).
 author: Nathan Maillet
@@ -41,11 +41,8 @@ library spell-checker-lib
 executable spell-checker
     main-is:    Main.hs
 
-    -- Modules included in this executable, other than Main.
     other-modules: StatsFromTxt
 
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
     build-depends:
         spell-checker:spell-checker-lib,
         base        ^>= 4.18.0.0,
