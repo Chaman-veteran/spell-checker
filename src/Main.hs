@@ -21,7 +21,6 @@ module Main (main) where
 import Control.Monad.Cont (ContT(runContT), label_, MonadCont(callCC))
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad (when)
-import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
 import Data.ByteString.Char8 (pack)
 import Data.Char (isSpace)
 import Data.List (intersperse, sort, sortOn)
@@ -38,12 +37,6 @@ import Data.WordTree
 
 -- | Used Keyboard, the only one supported for now is QWERTY
 type Keyboard = Vector Char
-
-instance FromJSON CountedWord where
-  parseJSON = withObject "CountedWord" $ \v ->
-    CountedWord
-      <$> v .: "word"
-      <*> v .: "properties"
 
 -- | Entrypoint into the spell-checker
 main :: IO ()
