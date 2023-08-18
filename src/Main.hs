@@ -32,6 +32,7 @@ import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, st
 import System.IO.NoBufferingWorkaround (initGetCharNoBuffering, getCharNoBuffering)
 import Data.Ord (Down(Down))
 import System.Info (os)
+import Codec.Serialise (readFileDeserialise)
 
 import Data.WordTree
 
@@ -49,9 +50,8 @@ main :: IO ()
 main = do
   if os == "mingw32" then initGetCharNoBuffering >> hSetBuffering stdout NoBuffering
   else hSetBuffering stdin NoBuffering
-  contents <- readFile "Statistics//result.txt"
-  let inputFreq = words contents
-  let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
+  inputFreq <- readFileDeserialise "SerializedStatistics/result" 
+  let dictionaryTree = mapToTree inputFreq
   putStrLn "Type enter to correct a word or tab to complete it."
   putStrLn "Type a word:"
   (`runContT` return) $ do

@@ -12,7 +12,7 @@ module Data.WordTree where
 import Data.Function (on)
 import Data.List (nub)
 import Data.Map.Strict (Map, (!?))
-import qualified Data.Map.Strict as M (empty, foldrWithKey, insert)
+import qualified Data.Map.Strict as M (empty, foldrWithKey, insert, insertWith)
 import Data.Maybe (fromMaybe)
 import Data.Aeson (FromJSON(parseJSON), (.:), parseJSON2)
 
@@ -72,6 +72,10 @@ inser (CountedWord (w : ws) (WordProperties f nextWords)) (Node propertiesExisti
 -- | Insertion of  a list of words in a tree
 listToTree :: [CountedWord] -> Tree Char
 listToTree = foldr inser (Node nullProperties M.empty)
+
+-- | Transform a map of CountedWords in a Tree
+mapToTree :: Map String (Int, [String]) -> Tree Char
+mapToTree = M.foldrWithKey (\key (f, i) tree -> inser (CountedWord key (WordProperties f i)) tree) (Node nullProperties M.empty)
 
 -- | Gives similar words from a suffixe as CountedWord (distance fixed by the snd parameter)
 -- similarWord :: Tree -> max distance -> actual prefixe -> typed word -> [neighbour words]

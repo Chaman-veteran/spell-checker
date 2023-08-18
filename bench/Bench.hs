@@ -5,7 +5,8 @@ import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
 import Data.ByteString.Char8 (pack)
 import Data.Maybe (mapMaybe)
 import Control.DeepSeq (NFData(..), force)
-import Criterion.Main (defaultMain, bench, bgroup, env, nfIO, nf) 
+import Criterion.Main (defaultMain, bench, bgroup, env, nfIO, nf)
+import Codec.Serialise (readFileDeserialise)
 
 import Data.WordTree
 
@@ -25,7 +26,15 @@ instance NFData a => NFData (Tree a) where
   rnf (Node properties branches) = rnf properties `seq` rnf branches
 
 setupEnv :: IO (Tree Char)
-setupEnv = do
+setupEnv = getTreeFromMap
+
+getTreeFromMap :: IO (Tree Char)
+getTreeFromMap = do 
+      inputFreq <- readFileDeserialise "SerializedStatistics/result" 
+      return $ mapToTree inputFreq
+
+getTreeFromStr :: IO (Tree Char)
+getTreeFromStr = do
   contents <- readFile "Statistics//result.txt"
   let inputFreq = words contents
   let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
@@ -34,7 +43,8 @@ setupEnv = do
 main :: IO ()
 main = defaultMain [
   bgroup "Tree" [
-    bench "Tree" $ nfIO setupEnv
+    bench "TreeFromStr" $ nfIO getTreeFromStr,
+    bench "TreeFromMap" $ nfIO getTreeFromMap
   ],
   env setupEnv $ \dictionaryTree -> bgroup "Completion" [
     bench "Completion" $ nf (`giveSuffixe` "") dictionaryTree

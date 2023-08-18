@@ -7,7 +7,7 @@
 --
 -----------------------------------------------------------------------------
 
-module StatsFromTxt (dictToStats) where
+module Main (main) where
 
 import System.IO (readFile, writeFile)
 import System.Directory (listDirectory)
@@ -17,9 +17,14 @@ import Control.Monad (forM)
 import Data.List (insert, find, sortOn)
 import Data.Maybe (maybe)
 import Data.Bifunctor (second)
+import Codec.Serialise (writeFileSerialise)
 
--- TODO : Serialize the Map (or the Tree?) instead of the Map as a String
+-- TODO : Serialize the Tree instead of the Map?
 -- see : https://hackage.haskell.org/package/serialise
+-- see serializeMap function at the end of the file
+
+main :: IO()
+main = serializeMap
 
 -- | Fetch words from a file
 getWords :: FilePath -> IO [String]
@@ -53,10 +58,13 @@ getStatsFromFile = getNextsSorted.getFreqnNext <$> getFiles
 
 -- | Transforms a Map storing statistics of words to stringified JSON
 mapToStr :: M.Map String (Int, [String]) -> String
-mapToStr = M.foldrWithKey (\key value str -> translateWord key value ++ str) "" 
+mapToStr = M.foldrWithKey (\key value str -> translateWord key value ++ str) ""
   where translateWord word (freq, nextWords) = "{\"word\":"++ show word
                                                   ++",\"properties\":["++show freq
                                                   ++","++show (take 3 nextWords)++"]} "
+
+
+-- OUTPUTS --
 
 -- | Writes statistics (as stringified JSON) WordProperties
 -- from files in Dictionaries to Statistics/result.txt
@@ -64,3 +72,7 @@ dictToStats :: IO ()
 dictToStats = do
   stats <- getStatsFromFile
   writeFile "Statistics/result.txt" $ mapToStr stats
+
+-- | Serialize the map associating words to their properties in a file
+serializeMap :: IO ()
+serializeMap = writeFileSerialise "SerializedStatistics/result" . M.map (second (take 3)) =<< getStatsFromFile
