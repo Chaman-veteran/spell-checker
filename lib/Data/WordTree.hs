@@ -51,9 +51,9 @@ nullProperties :: WordProperties
 nullProperties = WordProperties 0 []
 
 -- | Predicate to know if a word exist in the tree
-isReal :: Ord a => [a] -> Tree a -> Bool
-isReal [] (Node propertiesWord _) = frequency propertiesWord /= 0
-isReal (w : ws) actualNode = maybe False (isReal ws) $ branches actualNode !? w
+exists :: Ord a => [a] -> Tree a -> Bool
+exists [] (Node propertiesWord _) = frequency propertiesWord /= 0
+exists (w : ws) actualNode = maybe False (exists ws) $ branches actualNode !? w
 
 -- | Return the properties of a given word if it exists, the null word otherwise
 propertiesOf :: Ord a => [a] -> Tree a -> WordProperties
@@ -61,21 +61,21 @@ propertiesOf [] (Node propertiesWord _) = propertiesWord
 propertiesOf (w : ws) actualNode = maybe nullProperties (propertiesOf ws) $ branches actualNode !? w
 
 -- | Insertion of a word in a tree
-inser :: CountedWord -> Tree Char -> Tree Char
-inser wordEnd@(CountedWord [] _) (Node _ branches) = Node (freqNInfo wordEnd) branches
-inser (CountedWord (w : ws) (WordProperties f nextWords)) (Node propertiesExistingWord branches) =
-  Node propertiesExistingWord $ M.insert w (inser wordToInsert $ fromMaybe (Node nullProperties M.empty) next) branches
+insert :: CountedWord -> Tree Char -> Tree Char
+insert wordEnd@(CountedWord [] _) (Node _ branches) = Node (freqNInfo wordEnd) branches
+insert (CountedWord (w : ws) (WordProperties f nextWords)) (Node propertiesExistingWord branches) =
+  Node propertiesExistingWord $ M.insert w (insert wordToInsert $ fromMaybe (Node nullProperties M.empty) next) branches
   where
     next = branches !? w
     wordToInsert = CountedWord ws (WordProperties f nextWords)
 
 -- | Insertion of  a list of words in a tree
-listToTree :: [CountedWord] -> Tree Char
-listToTree = foldr inser (Node nullProperties M.empty)
+fromList :: [CountedWord] -> Tree Char
+fromList = foldr insert (Node nullProperties M.empty)
 
 -- | Transform a map of CountedWords in a Tree
-mapToTree :: Map String (Int, [String]) -> Tree Char
-mapToTree = M.foldrWithKey (\key (f, i) tree -> inser (CountedWord key (WordProperties f i)) tree) (Node nullProperties M.empty)
+fromMap :: Map String (Int, [String]) -> Tree Char
+fromMap = M.foldrWithKey (\key (f, i) tree -> insert (CountedWord key (WordProperties f i)) tree) (Node nullProperties M.empty)
 
 -- | Gives similar words from a suffixe as CountedWord (distance fixed by the snd parameter)
 -- similarWord :: Tree -> max distance -> actual prefixe -> typed word -> [neighbour words]

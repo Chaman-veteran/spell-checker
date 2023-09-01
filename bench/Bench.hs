@@ -31,13 +31,13 @@ setupEnv = getTreeFromMap
 getTreeFromMap :: IO (Tree Char)
 getTreeFromMap = do 
       inputFreq <- readFileDeserialise "SerializedStatistics/result" 
-      return $ mapToTree inputFreq
+      return $ fromMap inputFreq
 
 getTreeFromStr :: IO (Tree Char)
 getTreeFromStr = do
   contents <- readFile "Statistics//result.txt"
   let inputFreq = words contents
-  let dictionaryTree = listToTree $ mapMaybe (decodeStrict . pack) inputFreq
+  let dictionaryTree = fromList $ mapMaybe (decodeStrict . pack) inputFreq
   return dictionaryTree
 
 main :: IO ()

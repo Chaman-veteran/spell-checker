@@ -25,8 +25,8 @@ import Data.ByteString.Char8 (pack)
 import Data.Char (isSpace)
 import Data.List (intersperse, sort, sortOn)
 import Data.Maybe (mapMaybe, fromMaybe)
-import Data.Vector (Vector, fromList, imap, (!), (!?))
-import qualified Data.Vector as V (find, map)
+import Data.Vector (Vector, imap, (!), (!?))
+import qualified Data.Vector as V (find, map, fromList)
 import System.IO (IOMode (ReadMode), hSetBuffering, readFile, hFlush, stdout, stdin, BufferMode (NoBuffering))
 import System.IO.NoBufferingWorkaround (initGetCharNoBuffering, getCharNoBuffering)
 import Data.Ord (Down(Down))
@@ -44,7 +44,7 @@ main = do
   if os == "mingw32" then initGetCharNoBuffering >> hSetBuffering stdout NoBuffering
   else hSetBuffering stdin NoBuffering
   inputFreq <- readFileDeserialise "SerializedStatistics/result" 
-  let dictionaryTree = mapToTree inputFreq
+  let dictionaryTree = fromMap inputFreq
   putStrLn "Type enter to correct a word or tab to complete it."
   putStrLn "Type a word:"
   (`runContT` return) $ do
@@ -98,7 +98,7 @@ correctLine tree line = assemble correctWords
 -- | QWERTY Keyboard used to get neighboors leters from the on typed 
 keyboardEn :: Keyboard
 keyboardEn =
-  fromList
+ V.fromList
     [ 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
       'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';',
       'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.'
