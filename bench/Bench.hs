@@ -33,17 +33,9 @@ getTreeFromMap = do
       inputFreq <- readFileDeserialise "SerializedStatistics/result" 
       return $ fromMap inputFreq
 
-getTreeFromStr :: IO (Tree Char)
-getTreeFromStr = do
-  contents <- readFile "Statistics//result.txt"
-  let inputFreq = words contents
-  let dictionaryTree = fromList $ mapMaybe (decodeStrict . pack) inputFreq
-  return dictionaryTree
-
 main :: IO ()
 main = defaultMain [
   bgroup "Tree" [
-    bench "TreeFromStr" $ nfIO getTreeFromStr,
     bench "TreeFromMap" $ nfIO getTreeFromMap
   ],
   env setupEnv $ \dictionaryTree -> bgroup "Completion" [
