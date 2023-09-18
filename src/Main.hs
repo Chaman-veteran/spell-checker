@@ -13,9 +13,6 @@
 
 -- Thanks to archive.org for indexing free books in txt format --
 
--- TODO LIST --
--- See todo in StatsFromTxt
-
 module Main (main) where
 
 import Control.Monad.Cont (ContT(runContT), label_, MonadCont(callCC))

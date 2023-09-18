@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds, TypeOperators, DeriveGeneric, OverloadedStrings #-}
+
 -- --------------------------------------------------------------------------
 -- |
 -- Module      :  StatsFromTxt
@@ -18,22 +20,30 @@ import Data.List (insert, find, sortOn)
 import Data.Maybe (maybe)
 import Data.Bifunctor (second)
 import Codec.Serialise (writeFileSerialise)
+import Options.Generic (getRecord, ParseRecord, Generic, type (<?>))
 
--- TODO : Serialize the Tree instead of the Map?
--- see : https://hackage.haskell.org/package/serialise
--- see serializeMap function at the end of the file
+-- Should we serialize the Tree instead of the Map? --
+
+newtype Arguments = Arguments
+    { language :: String    <?> "Language of the dictionary to do the computation (e.g en)"
+    } deriving (Generic)
+
+instance ParseRecord Arguments
 
 main :: IO()
-main = serializeMap
+main = do
+  lang <- getRecord "Program to compute statistical data out of dictionaries"
+  serializeMap lang
 
 -- | Fetch words from a file
 getWords :: FilePath -> IO [String]
-getWords file = words <$> readFile ("Dictionaries//en//"++file)
+getWords file = words <$> readFile file
 
 -- | Assemble all words from different dictionaries
-getFiles :: IO [String]
-getFiles = do
-  files <- listDirectory "Dictionaries//en"
+getFiles :: String -> IO [String]
+getFiles lang = do
+  let dictionaryFiles = "Dictionaries//"++lang
+  files <- map ((dictionaryFiles++"//") ++) <$> listDirectory dictionaryFiles
   wordsPerFile <- forM files getWords
   return $ concat wordsPerFile
 
@@ -53,8 +63,8 @@ getNextsSorted :: M.Map String (Int, [(String, Int)]) -> M.Map String (Int, [Str
 getNextsSorted = M.map $ second (map fst . sortOn snd)
 
 -- | Fetch statistics as a Map object
-getStatsFromFile :: IO (M.Map String (Int, [String]))
-getStatsFromFile = getNextsSorted.getFreqnNext <$> getFiles
+getStatsFromFile :: String -> IO (M.Map String (Int, [String]))
+getStatsFromFile lang = getNextsSorted.getFreqnNext <$> getFiles lang
 
 -- | Transforms a Map storing statistics of words to stringified JSON
 mapToStr :: M.Map String (Int, [String]) -> String
@@ -63,16 +73,6 @@ mapToStr = M.foldrWithKey (\key value str -> translateWord key value ++ str) ""
                                                   ++",\"properties\":["++show freq
                                                   ++","++show (take 3 nextWords)++"]} "
 
-
--- OUTPUTS --
-
--- | Writes statistics (as stringified JSON) WordProperties
--- from files in Dictionaries to Statistics/result.txt
-dictToStats :: IO ()
-dictToStats = do
-  stats <- getStatsFromFile
-  writeFile "Statistics/result.txt" $ mapToStr stats
-
 -- | Serialize the map associating words to their properties in a file
-serializeMap :: IO ()
-serializeMap = writeFileSerialise "SerializedStatistics/result" . M.map (second (take 3)) =<< getStatsFromFile
+serializeMap :: String -> IO ()
+serializeMap lang = writeFileSerialise "SerializedStatistics/result" . M.map (second (take 3)) =<< getStatsFromFile lang
