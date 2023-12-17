@@ -1,4 +1,7 @@
 # Spell Checker
+## GHC version used
+**ghc   9.6.3      base-4.18.1.0**
+
 
 ## To start the spell checker using cabal
 ``` sh
@@ -19,4 +22,4 @@ cabal bench
 
 
 ## To stop it
-Type enter
+Type **enter**

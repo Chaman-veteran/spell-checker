@@ -31,9 +31,9 @@ library spell-checker-lib
         Data.WordTree
 
     build-depends:
-        base        ^>= 4.18.0.0,
-        aeson       ^>= 2.1.0.0,
-        containers  ^>= 0.6.0.0
+        base        ^>= 4.18.1.0,
+        aeson       ^>= 2.2.1.0,
+        containers  ^>= 0.6.7
 
     hs-source-dirs: lib
     default-language: Haskell2010
@@ -43,14 +43,15 @@ executable spell-checker
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.0.0,
-        vector      ^>= 0.12.0.0,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
+        base        ^>= 4.18.1.0,
+        vector      ^>= 0.13.1.0,
+        containers  ^>= 0.6.7,
+        directory   ^>= 1.3.8.1,
         mtl         ^>= 2.3.1,
-        bytestring  ^>= 0.11.4.0,
-        serialise   ^>= 0.2.6.0,
-        no-buffering-workaround ^>= 0.1.0.0
+        bytestring  ^>= 0.11.5.2,
+        serialise   ^>= 0.2.6.1,
+        no-buffering-workaround ^>= 0.1.0.0,
+        aeson       ^>= 2.2.1.0
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -60,13 +61,13 @@ executable get-dictionaries
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.0.0,
-        aeson       ^>= 2.1.0.0,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
-        bytestring  ^>= 0.11.4.0,
-        serialise   ^>= 0.2.6.0,
-        optparse-generic ^>= 1.5.1,
+        base        ^>= 4.18.1.0,
+        aeson       ^>= 2.2.1.0,
+        containers  ^>= 0.6.7,
+        directory   ^>= 1.3.8.1,
+        bytestring  ^>= 0.11.5.2,
+        serialise   ^>= 0.2.6.1,
+        optparse-generic ^>= 1.5.2,
         no-buffering-workaround ^>= 0.1.0.0
 
     hs-source-dirs:   src
@@ -78,13 +79,13 @@ benchmark spell-checker-bench
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.0.0,
-        vector      ^>= 0.12.0.0,
-        aeson       ^>= 2.1.0.0,
+        base        ^>= 4.18.1.0,
+        vector      ^>= 0.13.1.0,
+        aeson       ^>= 2.2.1.0,
         mtl         ^>= 2.3.1,
         deepseq     ^>= 1.4.8.1,
-        bytestring  ^>= 0.11.4.0,
-        serialise   ^>= 0.2.6.0,
+        bytestring  ^>= 0.11.5.2,
+        serialise   ^>= 0.2.6.1,
         criterion   ^>= 1.6.3.0
 
     hs-source-dirs: bench

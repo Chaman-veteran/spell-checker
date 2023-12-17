@@ -12,9 +12,9 @@ module Data.WordTree where
 import Data.Function (on)
 import Data.List (nub)
 import Data.Map.Strict (Map, (!?))
-import qualified Data.Map.Strict as M (empty, foldrWithKey, insert, insertWith)
+import qualified Data.Map.Strict as M (empty, foldrWithKey, insert)
 import Data.Maybe (fromMaybe)
-import Data.Aeson (FromJSON(parseJSON), (.:), parseJSON2)
+import Data.Aeson (FromJSON(parseJSON))
 
 -- | Data linked to a word
 data WordProperties = WordProperties {frequency :: Int, info :: [String]} deriving (Eq)

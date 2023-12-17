@@ -1,10 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Data.Aeson (FromJSON, decodeStrict, parseJSON, withObject, (.:))
-import Data.ByteString.Char8 (pack)
-import Data.Maybe (mapMaybe)
-import Control.DeepSeq (NFData(..), force)
+-- --------------------------------------------------------------------------
+-- |
+-- Module      :  Bench
+--
+--
+--  Benchmark made for speed tests.
+--
+-----------------------------------------------------------------------------
+
+import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
+import Control.DeepSeq (NFData(..))
 import Criterion.Main (defaultMain, bench, bgroup, env, nfIO, nf)
 import Codec.Serialise (readFileDeserialise)
 
