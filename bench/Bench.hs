@@ -14,10 +14,11 @@ import Data.Aeson (FromJSON, parseJSON, withObject, (.:))
 import Control.DeepSeq (NFData(..))
 import Criterion.Main (defaultMain, bench, bgroup, env, nfIO, nf)
 import Codec.Serialise (readFileDeserialise)
+import Data.Text (Text)
 
 import Data.WordTree
 
-instance FromJSON CountedWord where
+instance FromJSON a => FromJSON (CountedWord a) where
   parseJSON = withObject "CountedWord" $ \v ->
     CountedWord
       <$> v .: "word"
@@ -26,7 +27,7 @@ instance FromJSON CountedWord where
 instance NFData WordProperties where
   rnf (WordProperties frequency info) = rnf frequency `seq` rnf info
 
-instance NFData CountedWord where
+instance NFData a => NFData (CountedWord a) where
   rnf (CountedWord word properties) = rnf word `seq` rnf properties  
 
 instance NFData a => NFData (Tree a) where

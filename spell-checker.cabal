@@ -33,7 +33,8 @@ library spell-checker-lib
     build-depends:
         base        ^>= 4.18.1.0,
         aeson       ^>= 2.2.1.0,
-        containers  ^>= 0.6.7
+        containers  ^>= 0.6.7,
+        text        ^>= 2.0.2
 
     hs-source-dirs: lib
     default-language: Haskell2010
@@ -51,7 +52,8 @@ executable spell-checker
         bytestring  ^>= 0.11.5.2,
         serialise   ^>= 0.2.6.1,
         no-buffering-workaround ^>= 0.1.0.0,
-        aeson       ^>= 2.2.1.0
+        aeson       ^>= 2.2.1.0,
+        text        ^>= 2.0.2
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -86,7 +88,8 @@ benchmark spell-checker-bench
         deepseq     ^>= 1.4.8.1,
         bytestring  ^>= 0.11.5.2,
         serialise   ^>= 0.2.6.1,
-        criterion   ^>= 1.6.3.0
+        criterion   ^>= 1.6.3.0,
+        text        ^>= 2.0.2
 
     hs-source-dirs: bench
     default-language: Haskell2010
