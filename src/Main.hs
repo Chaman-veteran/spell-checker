@@ -79,27 +79,31 @@ prompt tree exit = do
       putStrLn ""
       print $ completeWord tree $ T.pack word
     Correct "" -> exit ()
-    Correct word -> liftIO $ print $ correctWord tree word
+    Correct word -> liftIO $ print =<< correctWord tree word
   restart
 
 -- | Complete user's input
 completeWord :: Tree Char -> Text -> [CountedWord Text]
 completeWord tree prefixe = take 10 . sortOn Down $ giveSuffixe tree prefixe
 
-associateDistance :: Text -> CountedWord Text -> (Int, CountedWord Text)
-associateDistance word x = (strDiff (CountedWord word nullProperties) x, x)
+associateDistance :: Text -> CountedWord Text -> IO (Int, CountedWord Text)
+associateDistance w x = do
+    distance <- strDiff w (word x)
+    return (distance, x)
 
 -- | Correct user's input
-correctWord :: Tree Char -> String -> [CountedWord Text]
-correctWord tree word = take 10 . sortOn (associateDistance $ T.pack word) $ similarWords tree 2 word
+correctWord :: Tree Char -> String -> IO [CountedWord Text]
+correctWord tree word = do
+    wordsWithDistance <- mapM (associateDistance $ T.pack word) $ similarWords tree 2 word
+    return $ take 10 . map snd $ sortOn fst wordsWithDistance
 
 -- | [Not used for now] Correct a whole line, giving only one answer
-correctLine :: Tree Char -> String -> CountedWord Text
-correctLine tree line = assemble correctWords
-  where
-    correctWords = map (head . correctWord tree) $ words line
-    assemble = foldl (\w1 w2 -> CountedWord (word w1 `T.snoc` ' ' `T.append` word w2) (WordProperties (negate 1) []))
-                      (CountedWord "" nullProperties)
+-- correctLine :: Tree Char -> String -> IO (CountedWord Text)
+-- correctLine tree line = assemble correctWords
+--   where
+--     correctWords = map (head . correctWord tree) $ words line
+--     assemble = foldl (\w1 w2 -> CountedWord (word w1 `T.snoc` ' ' `T.append` word w2) (WordProperties (negate 1) []))
+--                       (CountedWord "" nullProperties)
 
 -- | Extracts the text value out of a json
 getFromJSON :: KM.Key -> Value -> Text
@@ -142,24 +146,27 @@ actualKeyboard :: IO (Vector (Text, [Text]))
 actualKeyboard = nearChars <$> keyboardEn
 
 inPerimeterOf :: Text -> IO [Text]
-inPerimeterOf c = maybe [] snd . V.find (\z -> c == fst z) <$> actualKeyboard
+inPerimeterOf c = maybe [] snd . V.find ((c == ) . fst) <$> actualKeyboard
 
 -- | Calcul of the distance between two words (modifed Hamming's distance)
---strDiff :: CountedWord -> CountedWord -> Int
---strDiff (CountedWord x _) (CountedWord [] _) = length x
---strDiff (CountedWord [] _) (CountedWord y _) = length y
--- strDiff wx@(CountedWord (x : xs) freqx) wy@(CountedWord (y : ys) freqy) =
---   do
---     perimeterOfy <- inPerimeterOf y
---     if x == y
---       then strDiff (CountedWord xs freqx) (CountedWord ys freqy)
---       else 2 + diffMin
---   where
---     diffMin = min diffMinq $ min (strDiff (CountedWord xs freqx) wy) (strDiff wx (CountedWord ys freqy))
---     -- Case where they are "near" :
---     diffMinq =
---       strDiff (CountedWord xs freqx) (CountedWord ys freqy)
---         - if x `elem` perimeterOfy
---           then 1
---           else 0
-strDiff _ _ = 0
+strDiff :: Text -> Text -> IO Int
+strDiff tx ty = strDiff' (T.unpack tx) (T.unpack ty)
+
+min' :: IO Int -> IO Int -> IO Int
+min' a b = min <$> a <*> b
+
+strDiff' :: String -> String -> IO Int
+strDiff' x [] = return $ length x
+strDiff' [] y = return $ length y
+strDiff' (x : xs) (y : ys) =
+    if x == y then
+      strDiff' xs ys
+    else do
+      perimeterOfy <- inPerimeterOf $ T.singleton y
+      (+2) <$> diffMinq perimeterOfy
+  where
+    diffMin perimeterOfy = min' (diffMinq perimeterOfy) $ min' (strDiff' xs (y:ys)) (strDiff' (x:xs) ys)
+    -- Case where they are "near" :
+    diffMinq perimeterOfy = do
+        distance <- strDiff' xs ys
+        return $ distance - fromEnum (T.singleton x `elem` perimeterOfy)
