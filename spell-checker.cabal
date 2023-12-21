@@ -70,7 +70,8 @@ executable get-dictionaries
         bytestring  ^>= 0.11.5.2,
         serialise   ^>= 0.2.6.1,
         optparse-generic ^>= 1.5.2,
-        no-buffering-workaround ^>= 0.1.0.0
+        no-buffering-workaround ^>= 0.1.0.0,
+        text        ^>= 2.0.2
 
     hs-source-dirs:   src
     default-language: Haskell2010
