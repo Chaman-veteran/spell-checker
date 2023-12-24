@@ -42,15 +42,15 @@ getWords file = words <$> readFile file
 -- | Assemble all words from different dictionaries
 getFiles :: String -> IO [String]
 getFiles lang = do
-  let dictionaryFiles = "Dictionaries//"++lang
-  files <- map ((dictionaryFiles++"//") ++) <$> listDirectory dictionaryFiles
+  let dictionaryFiles = "Dictionaries//" ++ lang
+  files <- map ((dictionaryFiles ++ "//") ++) <$> listDirectory dictionaryFiles
   wordsPerFile <- forM files getWords
   return $ concat wordsPerFile
 
 -- | Merge two same words by suming the frequencies and following words 
 addValue :: (Int, [(String,Int)]) -> (Int, [(String,Int)]) -> (Int, [(String,Int)])
 addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWord, pNext) words)
-  where pNext = 1 + maybe 0 snd (find (\w -> fst w == nextWord) words)
+  where pNext = 1 + maybe 0 snd (find ((== nextWord) . fst) words)
 
 -- | Map a word to his frequence and the next words with the probabilities associated
 getFreqnNext :: [String] -> M.Map String (Int, [(String,Int)])
@@ -69,9 +69,9 @@ getStatsFromFile lang = getNextsSorted.getFreqnNext <$> getFiles lang
 -- | Transforms a Map storing statistics of words to stringified JSON
 mapToStr :: M.Map String (Int, [String]) -> String
 mapToStr = M.foldrWithKey (\key value str -> translateWord key value ++ str) ""
-  where translateWord word (freq, nextWords) = "{\"word\":"++ show word
-                                                  ++",\"properties\":["++show freq
-                                                  ++","++show (take 3 nextWords)++"]} "
+  where translateWord word (freq, nextWords) = "{\"word\":" ++ show word
+                                                  ++ ",\"properties\":[" ++ show freq
+                                                  ++ (',' : show (take 3 nextWords)) ++ "]} "
 
 -- | Serialize the map associating words to their properties in a file
 serializeMap :: String -> IO ()
