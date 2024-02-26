@@ -1,19 +1,19 @@
-cabal-version:      3.6
+cabal-version:      3.8
 name:               spell-checker
 version:            0.1.0.0
 build-type: Simple
 
 -- A short (one-line) description of the package.
--- synopsis: Spell-checker in Haskell
+synopsis: Spell-checker in Haskell
 
 -- A longer description of the package.
 -- description:
 
 -- A URL where users can report bugs.
--- bug-reports: https://github.com/Chaman-veteran/spell-checker
+bug-reports: https://github.com/Chaman-veteran/spell-checker
 
 -- The license under which the package is released.
--- license: MIT License
+license: MIT
 
 -- The package author(s).
 author: Nathan Maillet
@@ -31,14 +31,9 @@ library spell-checker-lib
         Data.WordTree
 
     build-depends:
-        base        ^>= 4.18.0.0,
-        parallel    ^>= 1.0.0.0,
-        vector      ^>= 0.12.0.0,
-        aeson       ^>= 2.1.0.0,
-        bytestring  ^>= 0.11.3.1,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
-        mtl         ^>= 2.3.1
+        base        ^>= 4.18.1.0,
+        aeson       ^>= 2.2.1.0,
+        containers  ^>= 0.6.7
 
     hs-source-dirs: lib
     default-language: Haskell2010
@@ -46,39 +41,53 @@ library spell-checker-lib
 executable spell-checker
     main-is:    Main.hs
 
-    -- Modules included in this executable, other than Main.
-    other-modules: StatsFromTxt
-
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.0.0,
-        parallel    ^>= 1.0.0.0,
-        vector      ^>= 0.12.0.0,
-        aeson       ^>= 2.1.0.0,
-        bytestring  ^>= 0.11.3.1,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
+        base        ^>= 4.18.1.0,
+        vector      ^>= 0.13.1.0,
+        containers  ^>= 0.6.7,
+        directory   ^>= 1.3.8.1,
         mtl         ^>= 2.3.1,
+        bytestring  ^>= 0.11.5.2,
+        serialise   ^>= 0.2.6.1,
+        no-buffering-workaround ^>= 0.1.0.0,
+        aeson       ^>= 2.2.1.0,
+        text        ^>= 2.0.2
+
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable get-dictionaries
+    main-is:    StatsFromTxt.hs
+
+    build-depends:
+        spell-checker:spell-checker-lib,
+        base        ^>= 4.18.1.0,
+        aeson       ^>= 2.2.1.0,
+        containers  ^>= 0.6.7,
+        directory   ^>= 1.3.8.1,
+        bytestring  ^>= 0.11.5.2,
+        serialise   ^>= 0.2.6.1,
+        optparse-generic ^>= 1.5.2,
         no-buffering-workaround ^>= 0.1.0.0
 
-    hs-source-dirs:   app
+    hs-source-dirs:   src
     default-language: Haskell2010
 
 benchmark spell-checker-bench
     type: exitcode-stdio-1.0
     main-is: Bench.hs
+
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.0.0,
-        parallel    ^>= 1.0.0.0,
-        vector      ^>= 0.12.0.0,
-        aeson       ^>= 2.1.0.0,
-        bytestring  ^>= 0.11.3.1,
-        containers  ^>= 0.6.0.0,
-        directory   ^>= 1.3.0.0,
-        mtl         ^>= 2.3.1
+        base        ^>= 4.18.1.0,
+        vector      ^>= 0.13.1.0,
+        aeson       ^>= 2.2.1.0,
+        mtl         ^>= 2.3.1,
+        deepseq     ^>= 1.4.8.1,
+        bytestring  ^>= 0.11.5.2,
+        serialise   ^>= 0.2.6.1,
+        criterion   ^>= 1.6.3.0
 
     hs-source-dirs: bench
     default-language: Haskell2010
