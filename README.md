@@ -1,6 +1,6 @@
 # Spell Checker
 ## GHC version used
-**ghc   9.6.3      base-4.18.1.0**
+**ghc   9.8.1      base-4.19.0.0**
 
 
 ## To start the spell checker using cabal
