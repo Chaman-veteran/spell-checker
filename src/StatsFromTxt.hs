@@ -55,8 +55,8 @@ addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWo
 -- | Map a word to his frequence and the next words with the probabilities associated
 getFreqnNext :: [String] -> M.Map String (Int, [(String,Int)])
 getFreqnNext [] = M.empty
-getFreqnNext [word] = M.insertWith addValue word (1, [(".", 1)]) M.empty
-getFreqnNext (w:ws) = M.insertWith addValue w (1, [(w, 1)]) $ getFreqnNext ws
+getFreqnNext [word] = M.insertWith addValue word (1, [(".",1)]) M.empty
+getFreqnNext (w:ws) = M.insertWith addValue w (1, [(head ws,1)]) $ getFreqnNext ws
 
 -- | Function to get the following words in sorted order
 getNextsSorted :: M.Map String (Int, [(String, Int)]) -> M.Map String (Int, [String])
