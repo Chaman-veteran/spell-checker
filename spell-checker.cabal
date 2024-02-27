@@ -6,9 +6,6 @@ build-type: Simple
 -- A short (one-line) description of the package.
 synopsis: Spell-checker in Haskell
 
--- A longer description of the package.
--- description:
-
 -- A URL where users can report bugs.
 bug-reports: https://github.com/Chaman-veteran/spell-checker
 
@@ -18,12 +15,6 @@ license: MIT
 -- The package author(s).
 author: Nathan Maillet
 
--- An email address to which users can send suggestions, bug reports, and patches.
--- maintainer:
-
--- A copyright notice.
--- copyright:
--- category:
 extra-source-files: CHANGELOG.md
 
 library spell-checker-lib
@@ -31,9 +22,9 @@ library spell-checker-lib
         Data.WordTree
 
     build-depends:
-        base        ^>= 4.18.1.0,
+        base        ^>= 4.19.0.0,
         aeson       ^>= 2.2.1.0,
-        containers  ^>= 0.6.7
+        containers  ^>= 0.6.8
 
     hs-source-dirs: lib
     default-language: Haskell2010
@@ -43,16 +34,16 @@ executable spell-checker
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.1.0,
+        base        ^>= 4.19.0.0,
         vector      ^>= 0.13.1.0,
-        containers  ^>= 0.6.7,
-        directory   ^>= 1.3.8.1,
+        containers  ^>= 0.6.8,
+        directory   ^>= 1.3.8.3,
         mtl         ^>= 2.3.1,
-        bytestring  ^>= 0.11.5.2,
+        bytestring  ^>= 0.12.1.0,
         serialise   ^>= 0.2.6.1,
         no-buffering-workaround ^>= 0.1.0.0,
         aeson       ^>= 2.2.1.0,
-        text        ^>= 2.0.2
+        text        ^>= 2.1.1
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -62,11 +53,11 @@ executable get-dictionaries
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.1.0,
+        base        ^>= 4.19.0.0,
         aeson       ^>= 2.2.1.0,
-        containers  ^>= 0.6.7,
-        directory   ^>= 1.3.8.1,
-        bytestring  ^>= 0.11.5.2,
+        containers  ^>= 0.6.8,
+        directory   ^>= 1.3.8.3,
+        bytestring  ^>= 0.12.1.0,
         serialise   ^>= 0.2.6.1,
         optparse-generic ^>= 1.5.2,
         no-buffering-workaround ^>= 0.1.0.0
@@ -80,12 +71,12 @@ benchmark spell-checker-bench
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.18.1.0,
+        base        ^>= 4.19.0.0,
         vector      ^>= 0.13.1.0,
         aeson       ^>= 2.2.1.0,
         mtl         ^>= 2.3.1,
-        deepseq     ^>= 1.4.8.1,
-        bytestring  ^>= 0.11.5.2,
+        deepseq     ^>= 1.5.0.0,
+        bytestring  ^>= 0.12.1.0,
         serialise   ^>= 0.2.6.1,
         criterion   ^>= 1.6.3.0
 
