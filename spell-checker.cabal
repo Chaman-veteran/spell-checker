@@ -22,7 +22,7 @@ library spell-checker-lib
         Data.WordTree
 
     build-depends:
-        base        ^>= 4.19.0.0,
+        base        ^>= 4.19.1.0,
         aeson       ^>= 2.2.1.0,
         containers  ^>= 0.6.8
 
@@ -35,7 +35,7 @@ executable spell-checker
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.19.0.0,
+        base        ^>= 4.19.1.0,
         containers  ^>= 0.6.8,
         directory   ^>= 1.3.8.3,
         mtl         ^>= 2.3.1,
@@ -54,7 +54,7 @@ executable get-dictionaries
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.19.0.0,
+        base        ^>= 4.19.1.0,
         aeson       ^>= 2.2.1.0,
         containers  ^>= 0.6.8,
         directory   ^>= 1.3.8.3,
@@ -72,7 +72,7 @@ benchmark spell-checker-bench
 
     build-depends:
         spell-checker:spell-checker-lib,
-        base        ^>= 4.19.0.0,
+        base        ^>= 4.19.1.0,
         vector      ^>= 0.13.1.0,
         aeson       ^>= 2.2.1.0,
         mtl         ^>= 2.3.1,
@@ -82,4 +82,21 @@ benchmark spell-checker-bench
         criterion   ^>= 1.6.3.0
 
     hs-source-dirs: bench
+    default-language: Haskell2010
+
+library spell-checker-interface
+    exposed-modules:
+        SpellCheckerInterface
+    
+    visibility: public
+
+    build-depends:
+        spell-checker:spell-checker-lib,
+        base        ^>= 4.19.1.0,
+        vector      ^>= 0.13.1.0,
+        aeson       ^>= 2.2.1.0,
+        bytestring  ^>= 0.12.1.0,
+        text        ^>= 2.1.1
+
+    hs-source-dirs:   src
     default-language: Haskell2010

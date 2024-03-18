@@ -11,16 +11,18 @@
 
 module Main (main) where
 
-import System.IO (readFile, writeFile)
-import System.Directory (listDirectory)
-import qualified Data.Map.Strict as M
-  (Map, insert, empty, insertWith, foldrWithKey, map)
 import Control.Monad (forM)
+import Codec.Serialise (writeFileSerialise)
+import Options.Generic (getRecord, ParseRecord, Generic, type (<?>))
+
 import Data.List (insert, find, sortOn)
 import Data.Maybe (maybe)
 import Data.Bifunctor (second)
-import Codec.Serialise (writeFileSerialise)
-import Options.Generic (getRecord, ParseRecord, Generic, type (<?>))
+import qualified Data.Map.Strict as M
+  (Map, empty, insertWith, foldrWithKey, map)
+
+import System.IO (readFile)
+import System.Directory (listDirectory)
 
 -- Should we serialize the Tree instead of the Map? --
 
@@ -56,7 +58,7 @@ addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWo
 getFreqnNext :: [String] -> M.Map String (Int, [(String,Int)])
 getFreqnNext [] = M.empty
 getFreqnNext [word] = M.insertWith addValue word (1, [(".",1)]) M.empty
-getFreqnNext (w:ws) = M.insertWith addValue w (1, [(head ws,1)]) $ getFreqnNext ws
+getFreqnNext (w0:w1:ws) = M.insertWith addValue w0 (1, [(w1,1)]) $ getFreqnNext (w1:ws)
 
 -- | Function to get the following words in sorted order
 getNextsSorted :: M.Map String (Int, [(String, Int)]) -> M.Map String (Int, [String])

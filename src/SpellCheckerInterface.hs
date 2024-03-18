@@ -9,16 +9,16 @@
 --
 -----------------------------------------------------------------------------
 
-module SpellCheckerInterface where
+module SpellCheckerInterface (completeWord, correctWord) where
 
 import Data.Maybe (mapMaybe, fromJust)
 import Data.Ord (Down(Down))
-import Data.List (sort, sortOn)
-import Data.Vector (Vector, imap, (!), (!?))
+import Data.List (sortOn)
+import Data.Vector (Vector, imap, (!?))
 import Data.Aeson (decode, Array, Value(Object, Array, String))
 import qualified Data.Text as T (head)
 import qualified Data.ByteString.Lazy as B (readFile)
-import qualified Data.Vector as V (find, map, fromList, zip, zipWith, concat, toList)
+import qualified Data.Vector as V (find, map, zip, zipWith, concat, toList)
 import qualified Data.Aeson.KeyMap as KM ((!?), Key)
 
 import Data.WordTree
