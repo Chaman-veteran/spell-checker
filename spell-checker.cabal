@@ -21,6 +21,8 @@ library spell-checker-lib
     exposed-modules:
         Data.WordTree
 
+    visibility: public
+
     build-depends:
         base        ^>= 4.19.1.0,
         aeson       ^>= 2.2.1.0,
