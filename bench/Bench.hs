@@ -38,7 +38,7 @@ setupEnv = getTreeFromMap
 getTreeFromMap :: IO (Tree Char)
 getTreeFromMap = do 
       inputFreq <- readFileDeserialise "SerializedStatistics/result" 
-      return $ fromMap inputFreq
+      return $ mapToTree inputFreq
 
 main :: IO ()
 main = defaultMain [

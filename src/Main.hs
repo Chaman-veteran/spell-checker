@@ -27,7 +27,7 @@ import System.IO.NoBufferingWorkaround (initGetCharNoBuffering, getCharNoBufferi
 import System.Info (os)
 import Codec.Serialise (readFileDeserialise)
 
-import Data.WordTree (Tree, fromMap)
+import Data.WordTree (Tree, mapToTree)
 import SpellCheckerInterface (completeWord, correctWord)
 
 -- | The user can either ask for completion or correction
@@ -65,7 +65,7 @@ main = do
   if os == "mingw32" then initGetCharNoBuffering >> hSetBuffering stdout NoBuffering
   else hSetBuffering stdin NoBuffering
   inputFreq <- readFileDeserialise "SerializedStatistics/result" 
-  let dictionaryTree = fromMap inputFreq
+  let dictionaryTree = mapToTree inputFreq
   putStrLn "Type enter to correct a word or tab to complete it."
   putStrLn "Type a word:"
   (`runContT` return) $ do

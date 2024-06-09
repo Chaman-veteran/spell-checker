@@ -76,29 +76,30 @@ insert (CountedWord (w : ws) (WordProperties f nextWords)) (Node propertiesExist
     wordToInsert = CountedWord ws (WordProperties f nextWords)
 
 -- | Insertion of  a list of words in a tree
-fromList :: [CountedWord] -> Tree Char
-fromList = foldr insert nullTree
+listToTree :: [CountedWord] -> Tree Char
+listToTree = foldr insert nullTree
 
 -- | Transform a map of CountedWords in a Tree
-fromMap :: Map String (Int, [String]) -> Tree Char
-fromMap = M.foldrWithKey (\key (f, i) tree -> insert (CountedWord key (WordProperties f i)) tree) nullTree
+mapToTree :: Map String (Int, [String]) -> Tree Char
+mapToTree = M.foldrWithKey (\key (f, i) tree -> insert (CountedWord key (WordProperties f i)) tree) nullTree
 
--- | Gives similar words from a suffixe as CountedWord (distance fixed by the snd parameter)
--- similarWord :: Tree -> max distance -> actual prefixe -> typed word -> [neighbour words]
+-- | Gives similar words from a suffixe as CountedWord.
+-- 
+--  * @param d@, the maximal (Hamming) distance of a word to be considered as similar
+--  * @param prefixe@, the actual prefixe (initialized as "")
+--  * @param typed@, the typed word
+--  * @return@ A list of neighbour words
 similarWord :: Tree Char -> Int -> String -> String -> [CountedWord]
 similarWord (Node propertiesWord _) _ prefixe [] = [CountedWord prefixe propertiesWord | frequency propertiesWord /= 0]
 similarWord actualNode 0 prefixe word = [CountedWord (prefixe ++ word) freqWord | frequency freqWord /= 0]
   where
     freqWord = propertiesOf word actualNode
 similarWord actualNode@(Node _ branches) n prefixe word@(w : ws) =
-  M.foldrWithKey searchWords [] branches
+  M.foldrWithKey (\l subTree accum -> (++ accum) $ searchSimilarWords l subTree) [] branches
   where
-    searchWords l nextTree accum =
-      ( if l /= w
-          then similarWord actualNode (n - 1) prefixe (l : ws)
-          else similarWord nextTree n (prefixe ++ [w]) ws
-      )
-        ++ accum
+    searchSimilarWords l subTree =
+      if l /= w then similarWord subTree (n - 1) (prefixe ++ [l]) ws
+      else similarWord subTree n (prefixe ++ [w]) ws
 
 -- | Gives similar words of a given one as CountedWord
 similarWords :: Tree Char -> Int -> String -> [CountedWord]
