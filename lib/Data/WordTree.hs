@@ -10,7 +10,6 @@
 module Data.WordTree where
 
 import Data.Function (on)
-import Data.List (nub)
 import Data.Map.Strict (Map, (!?))
 import qualified Data.Map.Strict as M (empty, foldrWithKey, insert)
 import Data.Maybe (fromMaybe)
@@ -103,7 +102,7 @@ similarWord actualNode@(Node _ branches) n prefixe word@(w : ws) =
 
 -- | Gives similar words of a given one as CountedWord
 similarWords :: Tree Char -> Int -> String -> [CountedWord]
-similarWords tree distance word = nub $ similarWord tree distance [] word
+similarWords tree distance = similarWord tree distance []
 
 -- | Gives the tree associated to a prefix (i.e. the tree of possible suffixes)
 possibleSuffixes :: String -> Tree Char -> Tree Char
