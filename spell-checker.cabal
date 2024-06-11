@@ -45,8 +45,7 @@ executable spell-checker
         vector      ^>= 0.13.1.0,
         aeson       ^>= 2.2.1.0,
         bytestring  ^>= 0.12.1.0,
-        text        ^>= 2.1.1,
-        no-buffering-workaround ^>= 0.1.0.0
+        text        ^>= 2.1.1
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -62,8 +61,7 @@ executable get-dictionaries
         directory   ^>= 1.3.8.3,
         bytestring  ^>= 0.12.1.0,
         serialise   ^>= 0.2.6.1,
-        optparse-generic ^>= 1.5.2,
-        no-buffering-workaround ^>= 0.1.0.0
+        optparse-generic ^>= 1.5.2
 
     hs-source-dirs:   src
     default-language: Haskell2010

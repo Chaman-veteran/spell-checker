@@ -88,21 +88,21 @@ mapToTree = M.foldrWithKey (\key (f, i) tree -> insert (CountedWord key (WordPro
 --  * @param prefixe@, the actual prefixe (initialized as "")
 --  * @param typed@, the typed word
 --  * @return@ A list of neighbour words
-similarWord :: Tree Char -> Int -> String -> String -> [CountedWord]
-similarWord (Node propertiesWord _) _ prefixe [] = [CountedWord prefixe propertiesWord | frequency propertiesWord /= 0]
-similarWord actualNode 0 prefixe word = [CountedWord (prefixe ++ word) freqWord | frequency freqWord /= 0]
+similarSuffixes :: Tree Char -> Int -> String -> String -> [CountedWord]
+similarSuffixes (Node propertiesWord _) _ prefixe [] = [CountedWord prefixe propertiesWord | frequency propertiesWord /= 0]
+similarSuffixes actualNode 0 prefixe word = [CountedWord (prefixe ++ word) freqWord | frequency freqWord /= 0]
   where
     freqWord = propertiesOf word actualNode
-similarWord actualNode@(Node _ branches) n prefixe word@(w : ws) =
+similarSuffixes actualNode@(Node _ branches) n prefixe word@(w : ws) =
   M.foldrWithKey (\l subTree accum -> (++ accum) $ searchSimilarWords l subTree) [] branches
   where
     searchSimilarWords l subTree =
-      if l /= w then similarWord subTree (n - 1) (prefixe ++ [l]) ws
-      else similarWord subTree n (prefixe ++ [w]) ws
+      if l /= w then similarSuffixes subTree (n - 1) (prefixe ++ [l]) ws
+      else similarSuffixes subTree n (prefixe ++ [w]) ws
 
--- | Gives similar words of a given one as CountedWord
+-- | Gives similar words of a given one as a list of CountedWords
 similarWords :: Tree Char -> Int -> String -> [CountedWord]
-similarWords tree distance = similarWord tree distance []
+similarWords tree distance = similarSuffixes tree distance []
 
 -- | Gives the tree associated to a prefix (i.e. the tree of possible suffixes)
 possibleSuffixes :: String -> Tree Char -> Tree Char

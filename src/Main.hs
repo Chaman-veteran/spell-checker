@@ -23,7 +23,6 @@ import Data.Char (isSpace)
 
 import System.IO (IOMode (ReadMode), hSetBuffering,
     hFlush, stdout, stdin, BufferMode (NoBuffering))
-import System.IO.NoBufferingWorkaround (initGetCharNoBuffering, getCharNoBuffering)
 import System.Info (os)
 import Codec.Serialise (readFileDeserialise)
 
@@ -36,13 +35,10 @@ data Query a = Complete a | Correct a deriving Functor
 -- | Give the input of the user
 getWord :: IO (Query String)
 getWord = do
-  c <- if os == "mingw32" then getCharNoBuffering
-       else getChar
-  when (os == "mingw32") $ putChar c
+  c <- getChar
   case c of
     '\t' -> return $ Complete []
     _ | isSpace c -> do
-          when (os == "mingw32") $ putChar '\n'
           return $ Correct []
     _ -> fmap (c:) <$> getWord
 
@@ -62,12 +58,10 @@ prompt tree exit = do
 -- | Entrypoint into the spell-checker
 main :: IO ()
 main = do
-  if os == "mingw32" then initGetCharNoBuffering >> hSetBuffering stdout NoBuffering
-  else hSetBuffering stdin NoBuffering
+  hSetBuffering stdin NoBuffering
   inputFreq <- readFileDeserialise "SerializedStatistics/result" 
   let dictionaryTree = mapToTree inputFreq
   putStrLn "Type enter to correct a word or tab to complete it."
   putStrLn "Type a word:"
   (`runContT` return) $ do
     callCC $ prompt dictionaryTree
-
