@@ -50,19 +50,21 @@ getFiles lang = do
   return $ concat wordsPerFile
 
 -- | Merge two same words by suming the frequencies and following words 
-addValue :: (Int, [(String,Int)]) -> (Int, [(String,Int)]) -> (Int, [(String,Int)])
-addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWord, pNext) words)
-  where pNext = 1 + maybe 0 snd (find ((== nextWord) . fst) words)
+-- to the ones already recorded 
+addValue :: (Int, [(Int, String)]) -> (Int, [(Int, String)]) -> (Int, [(Int, String)])
+addValue (incFreq, [(_, nextWord)]) (freq, words) = (freq + incFreq, insert (nbSeen, nextWord) words)
+  where nbSeen = 1 + maybe 0 fst (find ((== nextWord) . snd) words)
+  -- ^ nbSeen is the number of occurences of nextWord following the current word
 
 -- | Map a word to his frequence and the next words with the probabilities associated
-getFreqnNext :: [String] -> M.Map String (Int, [(String,Int)])
+getFreqnNext :: [String] -> M.Map String (Int, [(Int, String)])
 getFreqnNext [] = M.empty
-getFreqnNext [word] = M.insertWith addValue word (1, [(".",1)]) M.empty
-getFreqnNext (w0:w1:ws) = M.insertWith addValue w0 (1, [(w1,1)]) $ getFreqnNext (w1:ws)
+getFreqnNext [word] = M.insertWith addValue word (1, [(1, ".")]) M.empty
+getFreqnNext (w0 : w1 : ws) = M.insertWith addValue w0 (1, [(1, w1)]) $ getFreqnNext (w1 : ws)
 
 -- | Function to get the following words in sorted order
-getNextsSorted :: M.Map String (Int, [(String, Int)]) -> M.Map String (Int, [String])
-getNextsSorted = M.map $ second (map fst . sortOn snd)
+getNextsSorted :: M.Map String (Int, [(Int, String)]) -> M.Map String (Int, [String])
+getNextsSorted = M.map $ second $ map snd
 
 -- | Fetch statistics as a Map object
 getStatsFromFile :: String -> IO (M.Map String (Int, [String]))
