@@ -64,7 +64,7 @@ getFreqnNext (w0 : w1 : ws) = M.insertWith addValue w0 (1, [(1, w1)]) $ getFreqn
 
 -- | Function to get the following words in sorted order
 getNextsSorted :: M.Map String (Int, [(Int, String)]) -> M.Map String (Int, [String])
-getNextsSorted = M.map $ second $ map snd
+getNextsSorted = M.map $ second $ map snd . take 3
 
 -- | Fetch statistics as a Map object
 getStatsFromFile :: String -> IO (M.Map String (Int, [String]))
@@ -79,4 +79,4 @@ mapToStr = M.foldrWithKey (\key value str -> translateWord key value ++ str) ""
 
 -- | Serialize the map associating words to their properties in a file
 serializeMap :: String -> IO ()
-serializeMap lang = writeFileSerialise "SerializedStatistics/result" . M.map (second (take 3)) =<< getStatsFromFile lang
+serializeMap lang = writeFileSerialise "SerializedStatistics/result" =<< getStatsFromFile lang
