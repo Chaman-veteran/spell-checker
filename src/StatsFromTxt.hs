@@ -15,7 +15,7 @@ import Control.Monad (forM)
 import Codec.Serialise (writeFileSerialise)
 import Options.Generic (getRecord, ParseRecord, Generic, type (<?>))
 
-import Data.List (insert, find, sortOn)
+import Data.List (insertBy, find, sortOn)
 import Data.Maybe (maybe)
 import Data.Bifunctor (second)
 import qualified Data.Map.Strict as M
@@ -49,10 +49,13 @@ getFiles lang = do
   wordsPerFile <- forM files getWords
   return $ concat wordsPerFile
 
+insertDown :: (Int, String) -> [(Int, String)] -> [(Int, String)]
+insertDown = insertBy (\a b -> compare b a)
+
 -- | Merge two same words by suming the frequencies and following words 
 -- to the ones already recorded 
 addValue :: (Int, [(Int, String)]) -> (Int, [(Int, String)]) -> (Int, [(Int, String)])
-addValue (incFreq, [(_, nextWord)]) (freq, words) = (freq + incFreq, insert (nbSeen, nextWord) words)
+addValue (incFreq, [(_, nextWord)]) (freq, words) = (freq + incFreq, insertDown (nbSeen, nextWord) words)
   where nbSeen = 1 + maybe 0 fst (find ((== nextWord) . snd) words)
   -- ^ nbSeen is the number of occurences of nextWord following the current word
 
