@@ -16,7 +16,7 @@ import Codec.Serialise (writeFileSerialise)
 import Options.Generic (getRecord, ParseRecord, Generic, type (<?>))
 
 import Data.List (insertBy, find, sortOn)
-import Data.Maybe (maybe)
+import Data.Maybe (maybe, fromMaybe, listToMaybe)
 import Data.Bifunctor (second)
 import qualified Data.Map.Strict as M
   (Map, empty, insertWith, foldrWithKey, map)
@@ -62,8 +62,8 @@ addValue (incFreq, [(_, nextWord)]) (freq, words) = (freq + incFreq, insertDown 
 -- | Map a word to his frequence and the next words with the probabilities associated
 getFreqnNext :: [String] -> M.Map String (Int, [(Int, String)])
 getFreqnNext [] = M.empty
-getFreqnNext [word] = M.insertWith addValue word (1, [(1, ".")]) M.empty
-getFreqnNext (w0 : w1 : ws) = M.insertWith addValue w0 (1, [(1, w1)]) $ getFreqnNext (w1 : ws)
+getFreqnNext (w:ws) = M.insertWith addValue w v $ getFreqnNext ws
+        where v = (1, [(1, fromMaybe "" $ listToMaybe ws)])
 
 -- | Function to get the following words in sorted order
 getNextsSorted :: M.Map String (Int, [(Int, String)]) -> M.Map String (Int, [String])
