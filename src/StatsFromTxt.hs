@@ -55,7 +55,7 @@ insertDown = insertBy (\a b -> compare b a)
 -- | Merge two same words by suming the frequencies and following words 
 -- to the ones already recorded 
 addValue :: (Int, [(Int, String)]) -> (Int, [(Int, String)]) -> (Int, [(Int, String)])
-addValue (incFreq, [(_, nextWord)]) (freq, words) = (freq + incFreq, insertDown (nbSeen, nextWord) words)
+addValue (_, [(_, nextWord)]) (freq, words) = (freq + 1, insertDown (nbSeen, nextWord) words)
   where nbSeen = 1 + maybe 0 fst (find ((== nextWord) . snd) words)
   -- ^ nbSeen is the number of occurences of nextWord following the current word
 
@@ -66,12 +66,12 @@ getFreqnNext (w:ws) = M.insertWith addValue w v $ getFreqnNext ws
         where v = (1, [(1, fromMaybe "" $ listToMaybe ws)])
 
 -- | Function to get the following words in sorted order
-getNextsSorted :: M.Map String (Int, [(Int, String)]) -> M.Map String (Int, [String])
-getNextsSorted = M.map $ second $ map snd . take 3
+getResultingMap :: M.Map String (Int, [(Int, String)]) -> M.Map String (Int, [String])
+getResultingMap = M.map $ second $ map snd . take 3
 
 -- | Fetch statistics as a Map object
 getStatsFromFile :: String -> IO (M.Map String (Int, [String]))
-getStatsFromFile lang = getNextsSorted.getFreqnNext <$> getFiles lang
+getStatsFromFile lang = getResultingMap.getFreqnNext <$> getFiles lang
 
 -- | Transforms a Map storing statistics of words to stringified JSON
 mapToStr :: M.Map String (Int, [String]) -> String
