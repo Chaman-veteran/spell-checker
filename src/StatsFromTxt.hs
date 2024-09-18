@@ -55,8 +55,7 @@ insertDown = insertBy (\a b -> compare b a)
 -- | Merge two same words by suming the frequencies and following words 
 -- to the ones already recorded 
 addValue :: (Int, [(Int, String)]) -> (Int, [(Int, String)]) -> (Int, [(Int, String)])
-addValue (_, [(_, nextWord)]) (freq, words) =
-  (freq + 1, filter ((/= nextWord) . snd) $ insertDown (nbSeen, nextWord) words)
+addValue (_, [(_, nextWord)]) (freq, words) = (freq + 1, insertDown (nbSeen, nextWord) words)
   where nbSeen = 1 + maybe 0 fst (find ((== nextWord) . snd) words)
   -- ^ nbSeen is the number of occurences of nextWord following the current word
 
