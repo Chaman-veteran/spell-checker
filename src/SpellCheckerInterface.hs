@@ -92,7 +92,7 @@ actualKeyboard :: IO (Vector (Char, [Char]))
 actualKeyboard = nearChars <$> keyboardEn
 
 -- | Returns the perimeter of a character, as per nearChars's definition of "neighbor"
-inPerimeterOf :: Char -> IO String
+inPerimeterOf :: Char -> IO [Char]
 inPerimeterOf c = maybe [] snd . V.find ((c == ) . fst) <$> actualKeyboard
 
 -- | Monadic minimum function for IO monad constrained values
@@ -101,17 +101,15 @@ min' a b = min <$> a <*> b
 
 -- | Calcul of the distance between two words (modifed Hamming's distance)
 strDiff :: String -> String -> IO Int
-strDiff x [] = return $ length x
-strDiff [] y = return $ length y
-strDiff (x : xs) (y : ys) =
-    if x == y then
-      strDiff xs ys
-    else do
-      perimeterOfy <- inPerimeterOf y
-      (+2) <$> diffMinq perimeterOfy
+strDiff x "" = return $ length x
+strDiff "" y = return $ length y
+strDiff (x : xs) (y : ys) | x == y = strDiff xs ys
+strDiff (x : xs) (y : ys) = do
+    perimeterOfy <- inPerimeterOf y
+    (+2) <$> diffMin perimeterOfy
   where
-    diffMin perimeterOfy = min' (diffMinq perimeterOfy) $ min' (strDiff xs (y:ys)) (strDiff (x:xs) ys)
+    diffMin perimeterOfy = min' (perimeterDiff perimeterOfy) $ min' (strDiff xs (y:ys)) (strDiff (x:xs) ys)
     -- Case where they are "near" :
-    diffMinq perimeterOfy = do
-        distance <- strDiff xs ys
-        return $ distance - fromEnum (x `elem` perimeterOfy)
+    perimeterDiff perimeterOfy = do
+        tailDiff <- strDiff xs ys
+        return $ tailDiff - fromEnum (x `elem` perimeterOfy)
