@@ -106,10 +106,6 @@ strDiff "" y = return $ length y
 strDiff (x : xs) (y : ys) | x == y = strDiff xs ys
 strDiff (x : xs) (y : ys) = do
     perimeterOfy <- inPerimeterOf y
-    (+2) <$> diffMin perimeterOfy
-  where
-    diffMin perimeterOfy = min' (perimeterDiff perimeterOfy) $ min' (strDiff xs (y:ys)) (strDiff (x:xs) ys)
-    -- Case where they are "near" :
-    perimeterDiff perimeterOfy = do
-        tailDiff <- strDiff xs ys
-        return $ tailDiff - fromEnum (x `elem` perimeterOfy)
+    tailDiff <- strDiff xs ys
+    let perimeterDiff = tailDiff - fromEnum (x `elem` perimeterOfy)
+    (+2) <$> min perimeterDiff <$> min' (strDiff xs (y:ys)) (strDiff (x:xs) ys)
