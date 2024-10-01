@@ -59,7 +59,7 @@ traverseTree c (Just actualNode) = branches actualNode !? c
 
 -- | Predicate to know if a word exist in the tree
 exists :: Tree Char -> String -> Bool
-exists tree t = Just True == (True <$ foldr traverseTree (Just tree) t)
+exists tree t = fromMaybe False $ ((> 0) . frequency. properties) <$> foldr traverseTree (Just tree) t
 
 -- | Return the properties of a given word if it exists, the null word otherwise
 propertiesOf :: String -> Tree Char -> WordProperties
