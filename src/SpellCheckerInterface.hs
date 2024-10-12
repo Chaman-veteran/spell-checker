@@ -9,7 +9,7 @@
 --
 -----------------------------------------------------------------------------
 
-module SpellCheckerInterface (completeWord, correctWord) where
+module SpellCheckerInterface (completeWord, correctWord, getKeyboardEn ) where
 
 import Data.Maybe (mapMaybe, fromJust)
 import Data.Ord (Down(Down))
@@ -21,6 +21,8 @@ import qualified Data.ByteString.Lazy as B (readFile)
 import qualified Data.Vector as V (find, map, zip, zipWith, concat, toList)
 import qualified Data.Aeson.KeyMap as KM ((!?), Key)
 
+import Control.Monad.Reader (Reader, ask)
+
 import Data.WordTree
 
 -- | Used Keyboard, the only one supported for now is QWERTY
@@ -31,13 +33,9 @@ type Keyboard = Vector (Vector Char)
 completeWord :: Tree Char -> String -> [CountedWord]
 completeWord tree prefixe = take 10 . sortOn Down $ giveSuffixe tree prefixe
 
-associateDistance :: String -> CountedWord -> IO (Int, CountedWord)
-associateDistance w x = do
-    distance <- strDiff w (word x)
-    return (distance, x)
 
 -- | Correct user's input
-correctWord :: Tree Char -> String -> IO [CountedWord]
+correctWord :: Tree Char -> String -> WithKeyboard [CountedWord]
 correctWord tree word = do
     wordsWithDistance <- mapM (associateDistance word) $ similarWords tree 2 word
     return $ take 10 . map snd $ sortOn fst wordsWithDistance
@@ -54,9 +52,9 @@ correctWord tree word = do
 getFromJSON :: KM.Key -> Value -> Char
 getFromJSON key (Object o) = (\(String s) -> T.head s) . fromJust $ o KM.!? key
 
--- | QWERTY Keyboard used to get neighboors leters from the on typed 
-keyboardEn :: IO Keyboard
-keyboardEn = do
+-- | QWERTY Keyboard used to get neighboors leters from the on typed
+getKeyboardEn :: IO Keyboard
+getKeyboardEn = do
   layoutB <- B.readFile "layouts/qwerty.json"
   let layoutArray = fromJust (decode layoutB :: Maybe Array)
   let fromJSON = V.map (\(Array v) -> V.map (getFromJSON "label") v) layoutArray
@@ -87,25 +85,31 @@ associateNearChars keyboard perimeter = V.concat . V.toList $ V.zipWith V.zip ke
 nearChars :: Keyboard -> Vector (Char, [Char])
 nearChars keyboard = associateNearChars keyboard $ charsPerimeter keyboard
 
+type WithKeyboard = Reader Keyboard
+
+associateDistance :: String -> CountedWord -> WithKeyboard (Int, CountedWord)
+associateDistance w x = do
+    diff <- strDiff w (word x)
+    return (diff, x)
+
 -- | The keyboard we choose to use
-actualKeyboard :: IO (Vector (Char, [Char]))
-actualKeyboard = nearChars <$> keyboardEn
+actualKeyboard :: WithKeyboard (Vector (Char, [Char]))
+actualKeyboard = do
+  keyboard <- ask
+  return $ nearChars keyboard
 
 -- | Returns the perimeter of a character, as per nearChars's definition of "neighbor"
-inPerimeterOf :: Char -> IO [Char]
-inPerimeterOf c = maybe [] snd . V.find ((c == ) . fst) <$> actualKeyboard
-
--- | Monadic minimum function for IO monad constrained values
-min' :: IO Int -> IO Int -> IO Int
-min' a b = min <$> a <*> b
+inPerimeterOf :: Char -> WithKeyboard [Char]
+inPerimeterOf c = (maybe [] snd . V.find ((c == ) . fst)) <$> actualKeyboard
 
 -- | Calcul of the distance between two words (modifed Hamming's distance)
-strDiff :: String -> String -> IO Int
+strDiff :: String -> String -> WithKeyboard Int
 strDiff x "" = return $ length x
 strDiff "" y = return $ length y
 strDiff (x : xs) (y : ys) | x == y = strDiff xs ys
-strDiff (x : xs) (y : ys) = do
-    perimeterOfy <- inPerimeterOf y
-    tailDiff <- strDiff xs ys
-    let perimeterDiff = tailDiff - fromEnum (x `elem` perimeterOfy)
-    (+2) <$> min perimeterDiff <$> min' (strDiff xs (y:ys)) (strDiff (x:xs) ys)
+strDiff (x : xs) (y : ys) =
+    let perimeterDiff = do
+          perimeterOfy <- inPerimeterOf y
+          tailDiff <- strDiff xs ys
+          return $ tailDiff - fromEnum (x `elem` perimeterOfy) in
+    ((2 +) . minimum) <$> sequence [perimeterDiff, strDiff xs (y:ys), strDiff (x:xs) ys]
