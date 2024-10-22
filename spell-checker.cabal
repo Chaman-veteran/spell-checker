@@ -20,15 +20,35 @@ extra-source-files: CHANGELOG.md
 library spell-checker-lib
     exposed-modules:
         Data.WordTree
+        Data.Keyboard
 
     visibility: public
 
     build-depends:
         base        ^>= 4.20.0.0,
         aeson       ^>= 2.2.1.0,
-        containers  ^>= 0.6.8
+        mtl         ^>= 2.3.1,
+        aeson       ^>= 2.2.1.0,
+        containers  ^>= 0.6.8,
+        vector      ^>= 0.13.1.0,
+        text        ^>= 2.1.1,
+        bytestring  ^>= 0.12.1.0
 
     hs-source-dirs: lib
+    default-language: Haskell2010
+
+library spell-checker-interface
+    exposed-modules:
+        SpellCheckerInterface
+    
+    visibility: public
+
+    build-depends:
+        spell-checker:spell-checker-lib,
+        base        ^>= 4.20.0.0,
+        vector      ^>= 0.13.1.0
+
+    hs-source-dirs:   src
     default-language: Haskell2010
 
 executable spell-checker
@@ -82,21 +102,4 @@ benchmark spell-checker-bench
         criterion   ^>= 1.6.3.0
 
     hs-source-dirs: bench
-    default-language: Haskell2010
-
-library spell-checker-interface
-    exposed-modules:
-        SpellCheckerInterface
-    
-    visibility: public
-
-    build-depends:
-        spell-checker:spell-checker-lib,
-        base        ^>= 4.20.0.0,
-        vector      ^>= 0.13.1.0,
-        aeson       ^>= 2.2.1.0,
-        bytestring  ^>= 0.12.1.0,
-        text        ^>= 2.1.1
-
-    hs-source-dirs:   src
     default-language: Haskell2010

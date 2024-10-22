@@ -21,14 +21,14 @@ import Control.Monad.Reader (runReader)
 import Control.Monad (when)
 
 import Data.Char (isSpace)
-
 import System.IO (IOMode (ReadMode), hSetBuffering,
     hFlush, stdout, stdin, BufferMode (NoBuffering))
 import System.Info (os)
 import Codec.Serialise (readFileDeserialise)
 
 import Data.WordTree (Tree, mapToTree)
-import SpellCheckerInterface (completeWord, correctWord, getKeyboardEn)
+import SpellCheckerInterface (completeWord, correctWord)
+import Data.Keyboard (actualKeyboard)
 
 -- | The user can either ask for completion or correction
 data Query a = Complete a | Correct a deriving Functor
@@ -46,7 +46,7 @@ getWord = do
 -- | Prompts a new word as long as the word to correct is not empty
 prompt :: Tree Char -> (() -> ContT r IO ()) -> ContT r IO ()
 prompt tree exit = do
-  keyboard <- liftIO getKeyboardEn
+  keyboard <- liftIO actualKeyboard
   restart <- label_
   query <- liftIO $ putStr "> " >> hFlush stdout >> getWord
   case query of
@@ -56,7 +56,6 @@ prompt tree exit = do
     Correct "" -> exit ()
     Correct word -> liftIO $ print $ runReader (correctWord tree word) keyboard
   restart
- 
 
 -- | Entrypoint into the spell-checker
 main :: IO ()
