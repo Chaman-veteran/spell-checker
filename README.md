@@ -1,7 +1,7 @@
 # Spell Checker
 ## GHC version used
-**ghc   9.10.1     base-4.20.0.0**
 
+**ghc   9.10.1     base-4.20.0.0**
 
 ## To start the spell checker using cabal
 ``` sh
@@ -19,7 +19,6 @@ If needed, you can add your own dictionaries in _/Dictionaries/my_language_ and 
 ``` sh
 cabal bench
 ```
-
 
 ## To stop it
 Type **enter**
