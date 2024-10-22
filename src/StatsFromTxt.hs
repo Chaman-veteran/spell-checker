@@ -15,8 +15,8 @@ import Control.Monad (forM)
 import Codec.Serialise (writeFileSerialise)
 import Options.Generic (getRecord, ParseRecord, Generic, type (<?>))
 
-import Data.List (insert, find, sortOn)
-import Data.Maybe (maybe)
+import Data.List (insertBy, find, sortOn)
+import Data.Maybe (maybe, fromMaybe, listToMaybe)
 import Data.Bifunctor (second)
 import qualified Data.Map.Strict as M
   (Map, empty, insertWith, foldrWithKey, map)
@@ -49,24 +49,29 @@ getFiles lang = do
   wordsPerFile <- forM files getWords
   return $ concat wordsPerFile
 
+insertDown :: (Int, String) -> [(Int, String)] -> [(Int, String)]
+insertDown = insertBy (\a b -> compare b a)
+
 -- | Merge two same words by suming the frequencies and following words 
-addValue :: (Int, [(String,Int)]) -> (Int, [(String,Int)]) -> (Int, [(String,Int)])
-addValue (incFreq, [(nextWord,_)]) (freq, words) = (freq+incFreq, insert (nextWord, pNext) words)
-  where pNext = 1 + maybe 0 snd (find ((== nextWord) . fst) words)
+-- to the ones already recorded 
+addValue :: (Int, [(Int, String)]) -> (Int, [(Int, String)]) -> (Int, [(Int, String)])
+addValue (_, [(_, nextWord)]) (freq, words) = (freq + 1, insertDown (nbSeen, nextWord) words)
+  where nbSeen = 1 + maybe 0 fst (find ((== nextWord) . snd) words)
+  -- ^ nbSeen is the number of occurences of nextWord following the current word
 
 -- | Map a word to his frequence and the next words with the probabilities associated
-getFreqnNext :: [String] -> M.Map String (Int, [(String,Int)])
+getFreqnNext :: [String] -> M.Map String (Int, [(Int, String)])
 getFreqnNext [] = M.empty
-getFreqnNext [word] = M.insertWith addValue word (1, [(".",1)]) M.empty
-getFreqnNext (w0:w1:ws) = M.insertWith addValue w0 (1, [(w1,1)]) $ getFreqnNext (w1:ws)
+getFreqnNext (w:ws) = M.insertWith addValue w v $ getFreqnNext ws
+        where v = (1, [(1, fromMaybe "" $ listToMaybe ws)])
 
 -- | Function to get the following words in sorted order
-getNextsSorted :: M.Map String (Int, [(String, Int)]) -> M.Map String (Int, [String])
-getNextsSorted = M.map $ second (map fst . sortOn snd)
+getResultingMap :: M.Map String (Int, [(Int, String)]) -> M.Map String (Int, [String])
+getResultingMap = M.map $ second $ map snd . take 3
 
 -- | Fetch statistics as a Map object
 getStatsFromFile :: String -> IO (M.Map String (Int, [String]))
-getStatsFromFile lang = getNextsSorted.getFreqnNext <$> getFiles lang
+getStatsFromFile lang = getResultingMap.getFreqnNext <$> getFiles lang
 
 -- | Transforms a Map storing statistics of words to stringified JSON
 mapToStr :: M.Map String (Int, [String]) -> String
@@ -77,4 +82,4 @@ mapToStr = M.foldrWithKey (\key value str -> translateWord key value ++ str) ""
 
 -- | Serialize the map associating words to their properties in a file
 serializeMap :: String -> IO ()
-serializeMap lang = writeFileSerialise "SerializedStatistics/result" . M.map (second (take 3)) =<< getStatsFromFile lang
+serializeMap lang = writeFileSerialise "SerializedStatistics/result" =<< getStatsFromFile lang
