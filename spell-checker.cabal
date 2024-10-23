@@ -46,6 +46,7 @@ library spell-checker-interface
     build-depends:
         spell-checker:spell-checker-lib,
         base        ^>= 4.20.0.0,
+        mtl         ^>= 2.3.1,
         vector      ^>= 0.13.1.0
 
     hs-source-dirs:   src
